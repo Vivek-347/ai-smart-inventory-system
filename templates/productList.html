@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product List</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+:root { --brand: #4f6ef7; --brand2: #7c5dfa; --ink: #1a1d2e; --muted: #8a8fa8; --line: #eef0f8; --soft: #f8f9fc; --green: #22c55e; --red: #ef4444; --amber: #f59e0b; }
+body { background: #f0f2f7; font-family: 'Inter', system-ui, sans-serif; color: var(--ink); min-height: 100vh; margin: 0; }
+
+/* ══ SPOTLIGHT ══ */
+.stat-card:hover { background-image: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(79,110,247,.11), transparent 65%); }
+
+/* ══ HEADER ══ */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+.page-title { font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+.page-sub { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
+.logo-chip { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; font-size: 20px; box-shadow: 0 6px 16px rgba(79,110,247,.38); animation: floaty 3.5s ease-in-out infinite; }
+@keyframes floaty { 50% { transform: translateY(-3px) rotate(-4deg); } }
+.breadcrumb-nav { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--muted); }
+.breadcrumb-nav a { color: var(--brand); text-decoration: none; font-weight: 600; }
+.breadcrumb-nav a:hover { text-decoration: underline; }
+.breadcrumb-nav i { font-size: 14px; }
+
+/* ══ STATS ══ */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat-card { background-color: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--line); position: relative; overflow: hidden; transition: transform .18s, box-shadow .18s; cursor: pointer; text-align: left; font-family: inherit; width: 100%; min-width: 0; }
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.09); }
+.stat-card.selected { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(79,110,247,.15); }
+.stat-card::before { content: ''; position: absolute; bottom: 0; right: 0; width: 90px; height: 90px; border-radius: 90px 0 14px 0; opacity: .06; }
+.stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card.c1::after { background: linear-gradient(90deg, #4f6ef7, #7c5dfa); } .stat-card.c1::before { background: var(--brand); }
+.stat-card.c2::after { background: linear-gradient(90deg, #16a34a, #22c55e); } .stat-card.c2::before { background: var(--green); }
+.stat-card.c3::after { background: linear-gradient(90deg, #d97706, #f59e0b); } .stat-card.c3::before { background: var(--amber); }
+.stat-card.c4::after { background: linear-gradient(90deg, #dc2626, #ef4444); } .stat-card.c4::before { background: var(--red); }
+.stat-card.c5::after { background: linear-gradient(90deg, #4f6ef7, #06b6d4); } .stat-card.c5::before { background: var(--brand); }
+.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform .25s; }
+.stat-card:hover .stat-icon { transform: scale(1.12) rotate(-6deg); }
+.stat-icon i { font-size: 20px; }
+.stat-icon.blue { background: #eef0ff; color: var(--brand); } .stat-icon.green { background: #dcfce7; color: #16a34a; }
+.stat-icon.amber { background: #fef3c7; color: #d97706; } .stat-icon.red { background: #fee2e2; color: #dc2626; }
+.stat-label { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 3px; }
+.stat-value { font-size: 24px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+
+/* ══ TABLE PANEL ══ */
+.table-panel { background: #fff; border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
+.table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f0f2f7; gap: 12px; flex-wrap: wrap; }
+.table-toolbar-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.table-toolbar-title i { font-size: 18px; color: var(--brand); }
+.product-count { background: #eef0ff; color: var(--brand); font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; font-variant-numeric: tabular-nums; }
+.btn-add { background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 6px 16px rgba(79,110,247,.35); position: relative; overflow: hidden; }
+.btn-add::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-20deg); transition: left .5s; }
+.btn-add:hover::after { left: 130%; }
+.btn-add:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(79,110,247,.45); }
+.btn-add i { font-size: 16px; }
+
+.tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid #f0f2f7; background: #fcfcfe; }
+.search-box { position: relative; flex: 1; min-width: 200px; max-width: 320px; }
+.search-box i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+.search-box input { width: 100%; padding: 8px 12px 8px 34px; border-radius: 10px; border: 1.5px solid #e8eaf2; background: #fff; font-size: 12.5px; outline: none; transition: .15s; font-family: inherit; }
+.search-box input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(79,110,247,.12); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; border: 1.5px solid #e8eaf2; background: #fff; color: #5a5f7d; cursor: pointer; transition: .15s; font-family: inherit; }
+.chip:hover { border-color: var(--brand); color: var(--brand); background: #f0f3ff; }
+.chip.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.cat-select { padding: 7px 12px; border-radius: 10px; border: 1.5px solid #e8eaf2; background: #fff; font-size: 12.5px; outline: none; font-family: inherit; color: #5a5f7d; margin-left: auto; }
+.cat-select:focus { border-color: var(--brand); }
+.sort-select { display: none; margin-left: 0; }
+
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--soft); }
+thead th { font-size: 11px; font-weight: 600; color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid #f0f2f7; white-space: nowrap; user-select: none; }
+thead th.sortable { cursor: pointer; transition: color .15s; }
+thead th.sortable:hover { color: var(--brand); }
+thead th .arrow { display: inline-block; margin-left: 4px; opacity: .3; font-size: 12px; transition: transform .2s, opacity .2s; }
+thead th.sorted .arrow { opacity: 1; color: var(--brand); }
+thead th.sorted.desc .arrow { transform: rotate(180deg); }
+tbody tr { border-bottom: 1px solid #f5f6fb; transition: background .15s, box-shadow .15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafbff; box-shadow: inset 3px 0 0 var(--brand); }
+tbody tr.row-in { animation: rowIn .45s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes rowIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+tbody td { font-size: 13px; color: #3d4166; padding: 13px 16px; vertical-align: middle; }
+
+.pid { color: #b0b4c8; font-size: 12px; font-variant-numeric: tabular-nums; }
+.product-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.avatar { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.product-name { font-weight: 600; color: var(--ink); }
+.category-badge { display: inline-block; background: #f0f2f7; color: #5a5f7d; font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+.price-cell { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.margin-pill { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; font-variant-numeric: tabular-nums; }
+.margin-pill.up { background: #dcfce7; color: #166534; } .margin-pill.mid { background: #fef3c7; color: #a15c00; } .margin-pill.down { background: #fee2e2; color: #b42318; }
+
+.stock-wrap { min-width: 130px; }
+.stock-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.stock-ok { background: #dcfce7; color: #15803d; } .stock-low { background: #fef3c7; color: #b45309; } .stock-out { background: #fee2e2; color: #dc2626; animation: critGlow 1.8s ease-in-out infinite; }
+@keyframes critGlow { 50% { box-shadow: 0 0 0 4px rgba(239,68,68,.16); } }
+.stock-bar { height: 5px; background: #f0f2f7; border-radius: 99px; overflow: hidden; margin-top: 6px; }
+.stock-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.stock-bar .g { background: linear-gradient(90deg, #16a34a, #22c55e); } .stock-bar .a { background: linear-gradient(90deg, #d97706, #f59e0b); } .stock-bar .r { background: #ef4444; }
+
+.action-btns { display: flex; align-items: center; gap: 8px; }
+.btn-edit, .btn-delete { display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; text-decoration: none; transition: all .15s; cursor: pointer; white-space: nowrap; }
+.btn-edit { background: #eef0ff; color: var(--brand); } .btn-edit:hover { background: var(--brand); color: #fff; }
+.btn-delete { background: #fee2e2; color: #dc2626; } .btn-delete:hover { background: #dc2626; color: #fff; }
+.btn-edit i, .btn-delete i { font-size: 14px; }
+
+.no-match { display: none; padding: 50px 20px; text-align: center; color: var(--muted); font-size: 13.5px; }
+.no-match i { display: block; font-size: 42px; color: #d0d4e8; margin-bottom: 8px; }
+.empty-state { text-align: center; padding: 60px 20px; color: #b0b4c8; }
+.empty-state i { font-size: 52px; margin-bottom: 12px; display: block; color: #d0d4e8; animation: floaty 3.5s ease-in-out infinite; }
+.empty-state p { font-size: 14px; margin: 0 0 16px; }
+
+/* ══ DELETE MODAL ══ */
+.modal-content { border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.22); }
+.del-ic { width: 64px; height: 64px; border-radius: 18px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 6px auto 14px; animation: critGlow 1.8s ease-in-out infinite; }
+.btn-danger-soft { background: #dc2626; color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .15s; }
+.btn-danger-soft:hover { background: #b91c1c; color: #fff; transform: translateY(-1px); }
+.btn-cancel { background: var(--soft); color: #5a5f7d; border: 1px solid #e8eaf2; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-cancel:hover { background: #eef0ff; color: var(--brand); }
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+
+/* Laptop / tablet landscape: table scrolls inside its panel instead of squeezing */
+@media (max-width: 1100px) {
+    #productTable { min-width: 860px; }
+    .table-responsive { -webkit-overflow-scrolling: touch; }
+}
+
+/* Tablet portrait / large phone */
+@media (max-width: 800px) {
+    .content { margin-left: 0 !important; }
+    .cat-select { margin-left: 0; }
+    .search-box { max-width: none; }
+}
+
+/* ── Phones & small tablets: each table row becomes a card ── */
+@media (max-width: 767.98px) {
+
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stats-grid .stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .stat-card { padding: 14px; }
+    .stat-icon { width: 36px; height: 36px; margin-bottom: 10px; }
+    .stat-value { font-size: 20px; }
+
+    .table-toolbar { padding: 14px 16px; }
+    .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; }
+    .search-box { grid-column: 1 / -1; min-width: 0; }
+    .search-box input { font-size: 16px; padding: 10px 12px 10px 34px; }   /* no iOS zoom */
+    .chips { grid-column: 1 / -1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: 1 0 auto; padding: 8px 14px; }
+    .cat-select, .sort-select { display: block; width: 100%; min-width: 0; font-size: 16px; padding: 9px 10px; margin: 0; }
+
+    #productTable { min-width: 0; }
+    #productTable thead { display: none; }
+    #productTable, #productTable tbody { display: block; width: 100%; }
+    #productTable tbody { padding: 6px 12px 12px; background: #fafbfe; }
+
+    #productTable tbody tr {
+        position: relative;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px;
+        margin: 10px 0 0; padding: 14px 14px 14px;
+        background: #fff; border: 1px solid var(--line); border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    #productTable tbody tr:last-child { border-bottom: 1px solid var(--line); }
+    #productTable tbody tr:hover { box-shadow: 0 6px 18px rgba(79,110,247,.12), inset 3px 0 0 var(--brand); }
+
+    #productTable tbody td { display: block; padding: 0; border: 0; min-width: 0; }
+    #productTable tbody td[data-label]::before {
+        content: attr(data-label); display: block; margin-bottom: 4px;
+        font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #a3a8bf;
+    }
+
+    /* product name row (avatar + name), id shown top-right */
+    #productTable tbody td.pid { position: absolute; top: 14px; right: 14px; font-size: 11px; background: #f0f2f7; padding: 2px 8px; border-radius: 20px; color: #8a8fa8; }
+    #productTable tbody td.pid::before { content: '#'; }
+    #productTable tbody td.td-product { grid-column: 1 / -1; padding-right: 48px; }
+    #productTable tbody td.td-cat { grid-column: 1 / -1; margin-top: -4px; }
+    #productTable tbody td.td-actions { grid-column: 1 / -1; padding-top: 12px; border-top: 1px dashed #e8eaf2; }
+    .product-name { overflow-wrap: anywhere; }
+    .stock-wrap { min-width: 0; }
+
+    .action-btns { gap: 10px; }
+    .action-btns .btn-edit, .action-btns .btn-delete { flex: 1; padding: 10px 12px; font-size: 13px; }
+
+    .no-match { padding: 40px 16px; }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+    .page-title { font-size: 18px; }
+    .logo-chip { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+    .page-sub { font-size: 12px; }
+    .table-toolbar .btn-add { width: 100%; padding: 11px 18px; }
+    .table-toolbar-title { width: 100%; }
+}
+
+@media (max-width: 380px) {
+    .stat-value { font-size: 18px; }
+    #productTable tbody tr { grid-template-columns: 1fr; }
+}
+
+/* Modal on small screens */
+@media (max-width: 575.98px) {
+    #deleteModal .modal-dialog { margin: 12px auto; max-width: calc(100vw - 24px) !important; }
+    #deleteModal .d-flex { flex-direction: column-reverse; }
+    #deleteModal .btn-cancel, #deleteModal .btn-danger-soft { width: 100%; padding: 11px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-title"><span class="logo-chip"><i class="ti ti-list-details"></i></span> Product List</div>
+            <div class="page-sub">All products registered in your inventory</div>
+        </div>
+        <div class="breadcrumb-nav">
+            <a href="/dashboard">Dashboard</a>
+            <i class="ti ti-chevron-right"></i>
+            <span>Product List</span>
+        </div>
+    </div>
+
+    {% if products %}
+
+    <!-- Summary cards (click to filter) -->
+    <div class="stats-grid">
+        <button type="button" class="stat-card c1 selected" data-filter="ALL">
+            <div class="stat-icon blue"><i class="ti ti-package"></i></div>
+            <div class="stat-label">Total products</div>
+            <div class="stat-value" id="sumTotal">0</div>
+        </button>
+        <button type="button" class="stat-card c2" data-filter="OK">
+            <div class="stat-icon green"><i class="ti ti-circle-check"></i></div>
+            <div class="stat-label">In stock</div>
+            <div class="stat-value" id="sumOk">0</div>
+        </button>
+        <button type="button" class="stat-card c3" data-filter="LOW">
+            <div class="stat-icon amber"><i class="ti ti-alert-triangle"></i></div>
+            <div class="stat-label">Low stock</div>
+            <div class="stat-value" id="sumLow">0</div>
+        </button>
+        <button type="button" class="stat-card c4" data-filter="OUT">
+            <div class="stat-icon red"><i class="ti ti-package-off"></i></div>
+            <div class="stat-label">Out of stock</div>
+            <div class="stat-value" id="sumOut">0</div>
+        </button>
+        <div class="stat-card c5" style="cursor:default;">
+            <div class="stat-icon blue"><i class="ti ti-currency-rupee"></i></div>
+            <div class="stat-label">Stock value (selling price)</div>
+            <div class="stat-value" id="sumValue">₹0</div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    <!-- Table Panel -->
+    <div class="table-panel">
+
+        <div class="table-toolbar">
+            <div class="table-toolbar-title">
+                <i class="ti ti-list-details"></i>
+                All Products
+                <span class="product-count" id="visibleCount">{{ products | length }}</span>
+            </div>
+            <a href="/products" class="btn-add"><i class="ti ti-plus"></i> Add Product</a>
+        </div>
+
+        {% if products %}
+
+        <div class="tools">
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="productSearch" placeholder="Search by name or category"></div>
+            <div class="chips" id="stockChips">
+                <button type="button" class="chip active" data-filter="ALL">All</button>
+                <button type="button" class="chip" data-filter="OK">In stock</button>
+                <button type="button" class="chip" data-filter="LOW">Low</button>
+                <button type="button" class="chip" data-filter="OUT">Out</button>
+            </div>
+            <select class="cat-select" id="catSelect"><option value="">All categories</option></select>
+            <select class="cat-select sort-select" id="sortSelect" aria-label="Sort products">
+                <option value="">Sort by…</option>
+                <option value="name:str:1">Name (A–Z)</option>
+                <option value="name:str:-1">Name (Z–A)</option>
+                <option value="price:num:1">Price: low to high</option>
+                <option value="price:num:-1">Price: high to low</option>
+                <option value="margin:num:-1">Margin: high to low</option>
+                <option value="stock:num:1">Stock: low to high</option>
+                <option value="stock:num:-1">Stock: high to low</option>
+                <option value="id:num:1">Oldest first</option>
+                <option value="id:num:-1">Newest first</option>
+            </select>
+        </div>
+
+        <div class="table-responsive">
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th class="sortable" data-sort="id" data-type="num"># <i class="ti ti-arrow-down arrow"></i></th>
+                    <th class="sortable" data-sort="name" data-type="str">Product name <i class="ti ti-arrow-down arrow"></i></th>
+                    <th class="sortable" data-sort="cat" data-type="str">Category <i class="ti ti-arrow-down arrow"></i></th>
+                    <th class="sortable" data-sort="cost" data-type="num">Cost price <i class="ti ti-arrow-down arrow"></i></th>
+                    <th class="sortable" data-sort="price" data-type="num">Selling price <i class="ti ti-arrow-down arrow"></i></th>
+                    <th class="sortable" data-sort="margin" data-type="num">Margin <i class="ti ti-arrow-down arrow"></i></th>
+                    <th class="sortable" data-sort="stock" data-type="num">Stock <i class="ti ti-arrow-down arrow"></i></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr class="row-in"
+                    style="animation-delay: {{ [loop.index0 * 25, 600] | min }}ms"
+                    data-id="{{ p[0] }}"
+                    data-name="{{ p[1]|e }}"
+                    data-cat="{{ p[2]|e }}"
+                    data-cost="{{ p[3] }}"
+                    data-price="{{ p[4] }}"
+                    data-stock="{{ p[5] }}">
+                    <td class="pid">{{ p[0] }}</td>
+
+                    <td class="td-product">
+                        <div class="product-cell">
+                            <span class="avatar" data-avatar="{{ p[1]|e }}">{{ p[1][0]|upper }}</span>
+                            <span class="product-name">{{ p[1] }}</span>
+                        </div>
+                    </td>
+
+                    <td class="td-cat"><span class="category-badge">{{ p[2] }}</span></td>
+
+                    <td class="price-cell" data-label="Cost price">₹{{ p[3] }}</td>
+
+                    <td class="price-cell" data-label="Selling price">₹{{ p[4] }}</td>
+
+                    <td data-label="Margin"><span class="margin-pill"></span></td>
+
+                    <td class="stock-wrap" data-label="Stock">
+                        {% if p[5] == 0 %}
+                            <span class="stock-pill stock-out"><i class="ti ti-alert-circle" style="font-size:13px;"></i> Out of Stock</span>
+                            <div class="stock-bar"><i class="r" data-w="4"></i></div>
+                        {% elif p[5] <= 5 %}
+                            <span class="stock-pill stock-low"><i class="ti ti-alert-triangle" style="font-size:13px;"></i> {{ p[5] }} Low</span>
+                            <div class="stock-bar"><i class="a" data-w="{{ p[5] * 8 }}"></i></div>
+                        {% else %}
+                            <span class="stock-pill stock-ok"><i class="ti ti-check" style="font-size:13px;"></i> {{ p[5] }}</span>
+                            <div class="stock-bar"><i class="g" data-w="{{ [p[5] * 2, 100] | min }}"></i></div>
+                        {% endif %}
+                    </td>
+
+                    <td class="td-actions">
+                        <div class="action-btns">
+                            <a href="/editProduct/{{ p[0] }}" class="btn-edit"><i class="ti ti-edit"></i> Edit</a>
+                            <a href="/deleteProduct/{{ p[0] }}" class="btn-delete" data-name="{{ p[1]|e }}">
+                                <i class="ti ti-trash"></i> Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+        <div class="no-match" id="noMatch"><i class="ti ti-search-off"></i>No products match your search or filters.</div>
+
+        {% else %}
+        <div class="empty-state">
+            <i class="ti ti-package-off"></i>
+            <p>No products added yet.</p>
+            <a href="/products" class="btn-add"><i class="ti ti-plus"></i> Add Your First Product</a>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="del-ic"><i class="ti ti-trash"></i></div>
+                <h5 class="fw-bold mb-1">Delete product?</h5>
+                <p class="text-muted small mb-4"><b id="delName"></b> will be removed from your inventory. This cannot be undone.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" id="delConfirm" class="btn-danger-soft"><i class="ti ti-trash"></i> Yes, delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rows = Array.from(document.querySelectorAll("#productTable tbody tr"));
+
+function animateNum(el, target, fmt) {
+    target = Number(target) || 0;
+    fmt = fmt || function (v) { return Math.round(v); };
+    if (reduceMotion || target === 0) { el.textContent = fmt(target); return; }
+    const start = performance.now(), dur = 900;
+    (function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(target * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+    })(start);
+}
+
+function stockState(n) { return n === 0 ? "OUT" : n <= 5 ? "LOW" : "OK"; }
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (!rows.length) return;
+
+    const palette = ["#4f6ef7", "#7c5dfa", "#06b6d4", "#16a34a", "#f59e0b", "#ec4899", "#0ea5e9", "#ef4444"];
+    const cats = new Set();
+    let ok = 0, low = 0, out = 0, value = 0;
+
+    rows.forEach(function (r) {
+        const cost = parseFloat(r.dataset.cost) || 0;
+        const price = parseFloat(r.dataset.price) || 0;
+        const stock = parseInt(r.dataset.stock, 10) || 0;
+        const margin = price > 0 ? (price - cost) / price * 100 : 0;
+        r.dataset.margin = margin;
+        r.dataset.state = stockState(stock);
+        if (r.dataset.cat) cats.add(r.dataset.cat);
+
+        if (r.dataset.state === "OK") ok++; else if (r.dataset.state === "LOW") low++; else out++;
+        value += price * stock;
+
+        const pill = r.querySelector(".margin-pill");
+        pill.textContent = margin.toFixed(0) + "%";
+        pill.classList.add(margin >= 25 ? "up" : margin >= 10 ? "mid" : "down");
+
+        const av = r.querySelector(".avatar");
+        let h = 0; const s = r.dataset.name || "";
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        av.style.background = "linear-gradient(135deg," + palette[h % palette.length] + "," + palette[(h + 3) % palette.length] + ")";
+    });
+
+    // Summary
+    animateNum(document.getElementById("sumTotal"), rows.length);
+    animateNum(document.getElementById("sumOk"), ok);
+    animateNum(document.getElementById("sumLow"), low);
+    animateNum(document.getElementById("sumOut"), out);
+    animateNum(document.getElementById("sumValue"), value, function (v) { return "₹" + Math.round(v).toLocaleString("en-IN"); });
+
+    // Category dropdown
+    const sel = document.getElementById("catSelect");
+    Array.from(cats).sort().forEach(function (c) {
+        const o = document.createElement("option");
+        o.value = c; o.textContent = c; sel.appendChild(o);
+    });
+
+    // Stock bars
+    setTimeout(function () {
+        document.querySelectorAll(".stock-bar i").forEach(function (b) { b.style.width = Math.min(100, Number(b.dataset.w) || 0) + "%"; });
+    }, 200);
+});
+
+// ═══ Filtering ═══
+let stockFilter = "ALL";
+function applyFilters() {
+    const q = document.getElementById("productSearch").value.trim().toLowerCase();
+    const cat = document.getElementById("catSelect").value;
+    let shown = 0;
+    rows.forEach(function (r) {
+        const ok = (r.dataset.name.toLowerCase().includes(q) || r.dataset.cat.toLowerCase().includes(q)) &&
+                   (stockFilter === "ALL" || r.dataset.state === stockFilter) &&
+                   (!cat || r.dataset.cat === cat);
+        r.style.display = ok ? "" : "none";
+        if (ok) shown++;
+    });
+    document.getElementById("visibleCount").textContent = shown;
+    document.getElementById("noMatch").style.display = shown ? "none" : "block";
+    document.querySelectorAll("#stockChips .chip").forEach(function (c) { c.classList.toggle("active", c.dataset.filter === stockFilter); });
+    document.querySelectorAll(".stat-card[data-filter]").forEach(function (c) { c.classList.toggle("selected", c.dataset.filter === stockFilter); });
+}
+const searchEl = document.getElementById("productSearch");
+if (searchEl) {
+    searchEl.addEventListener("input", applyFilters);
+    document.getElementById("catSelect").addEventListener("change", applyFilters);
+    document.querySelectorAll("#stockChips .chip, .stat-card[data-filter]").forEach(function (el) {
+        el.addEventListener("click", function () { stockFilter = el.dataset.filter; applyFilters(); });
+    });
+}
+
+// ═══ Sorting ═══
+let sortKey = null, sortDir = 1;
+
+function sortRows(key, type, dir) {
+    const tbody = document.querySelector("#productTable tbody");
+    rows.sort(function (a, b) {
+        const av = a.dataset[key], bv = b.dataset[key];
+        if (type === "num") return (parseFloat(av) - parseFloat(bv)) * dir;
+        return av.localeCompare(bv) * dir;
+    }).forEach(function (r) { r.classList.remove("row-in"); r.style.animation = "none"; tbody.appendChild(r); });
+}
+
+document.querySelectorAll("thead th.sortable").forEach(function (th) {
+    th.addEventListener("click", function () {
+        const key = th.dataset.sort, type = th.dataset.type;
+        sortDir = sortKey === key ? -sortDir : 1;
+        sortKey = key;
+        document.querySelectorAll("thead th").forEach(function (x) { x.classList.remove("sorted", "desc"); });
+        th.classList.add("sorted");
+        if (sortDir === -1) th.classList.add("desc");
+        sortRows(key, type, sortDir);
+    });
+});
+
+// Mobile sort dropdown (the table header is hidden on phones)
+const sortSel = document.getElementById("sortSelect");
+if (sortSel) {
+    sortSel.addEventListener("change", function () {
+        if (!sortSel.value) return;
+        const parts = sortSel.value.split(":");
+        sortKey = parts[0]; sortDir = parseInt(parts[2], 10);
+        document.querySelectorAll("thead th").forEach(function (x) { x.classList.remove("sorted", "desc"); });
+        const th = document.querySelector('thead th[data-sort="' + sortKey + '"]');
+        if (th) { th.classList.add("sorted"); if (sortDir === -1) th.classList.add("desc"); }
+        sortRows(sortKey, parts[1], sortDir);
+    });
+}
+
+// ═══ Delete confirmation modal ═══
+document.querySelectorAll(".btn-delete").forEach(function (a) {
+    a.addEventListener("click", function (e) {
+        e.preventDefault();
+        document.getElementById("delName").textContent = a.dataset.name;
+        document.getElementById("delConfirm").href = a.getAttribute("href");
+        new bootstrap.Modal(document.getElementById("deleteModal")).show();
+    });
+});
+
+// ═══ Mouse-follow spotlight ═══
+document.addEventListener("mousemove", function (e) {
+    const card = e.target.closest(".stat-card");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    card.style.setProperty("--my", (e.clientY - r.top) + "px");
+});
+</script>
+</body>
+</html>

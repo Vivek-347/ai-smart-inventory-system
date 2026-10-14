@@ -1,0 +1,499 @@
+{# sidebar.html - Include in every page with: {% include 'sidebar.html' %} #}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+* { box-sizing: border-box; }
+
+:root {
+    --sidebar-w: 280px;
+    --topbar-h: 58px;
+}
+
+body {
+    background: #f0f2f7;
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+
+.sidebar {
+    width: var(--sidebar-w);
+    height: 100vh;
+    height: 100dvh;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #0d0f1a;
+    scrollbar-width: none;
+    transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
+}
+
+.sidebar::-webkit-scrollbar { display: none; }
+
+/* ── Brand ── */
+.sidebar-brand {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.brand-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #4f6ef7, #7c5dfa);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(79,110,247,0.4);
+}
+
+.brand-icon i { font-size: 21px; color: #fff; }
+
+.brand-text h3 {
+    font-size: 15px; font-weight: 700;
+    color: #fff; margin: 0;
+    letter-spacing: 0.01em;
+}
+
+.brand-text p {
+    font-size: 11px; color: rgba(255,255,255,0.32);
+    margin: 1px 0 0;
+}
+
+/* Close button (mobile only) */
+.sidebar-close {
+    display: none;
+    position: absolute; top: 18px; right: 14px;
+    width: 34px; height: 34px; border-radius: 9px;
+    border: none; background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.7); cursor: pointer;
+    align-items: center; justify-content: center;
+    transition: all .15s;
+}
+.sidebar-close:hover { background: rgba(255,107,107,0.18); color: #ff6b6b; }
+.sidebar-close i { font-size: 18px; }
+
+/* Online status pill */
+.status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 20px;
+    padding: 4px 10px;
+    width: fit-content;
+}
+
+.status-dot {
+    width: 6px; height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.status-text { font-size: 10.5px; font-weight: 500; color: #4ade80; }
+
+/* ── Nav Sections ── */
+.nav-section { padding: 16px 12px 6px; }
+
+.nav-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.22);
+    padding: 0 8px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.nav-label::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: rgba(255,255,255,0.06);
+}
+
+/* ── Nav Links ── */
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.48);
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.18s;
+    margin-bottom: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar a::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #4f6ef7;
+    transform: scaleY(0);
+    transition: transform 0.18s;
+}
+
+.sidebar a .nav-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    transition: all 0.18s;
+}
+
+.sidebar a .nav-icon i { font-size: 18px; }
+
+.sidebar a span.link-text { flex: 1; }
+
+.sidebar a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+}
+
+.sidebar a:hover .nav-icon {
+    background: rgba(79,110,247,0.2);
+    color: #818cf8;
+}
+
+.sidebar a:hover::before { transform: scaleY(1); }
+
+.sidebar a.active {
+    color: #fff;
+    background: linear-gradient(90deg, rgba(79,110,247,0.25), rgba(79,110,247,0.05));
+    font-weight: 500;
+}
+
+.sidebar a.active::before { transform: scaleY(1); }
+
+.sidebar a.active .nav-icon {
+    background: #4f6ef7;
+    box-shadow: 0 3px 10px rgba(79,110,247,0.4);
+    color: #fff;
+}
+
+/* ── Badges ── */
+.nav-badge {
+    margin-left: auto;
+    font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    flex-shrink: 0;
+}
+
+.sidebar a.active .nav-badge {
+    background: rgba(79,110,247,0.4);
+    color: #c7d2fe;
+}
+
+.nav-badge.new-badge {
+    background: rgba(74,222,128,0.15);
+    color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.25);
+}
+
+/* ── Footer ── */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+
+.sidebar-footer a {
+    color: rgba(255,255,255,0.35) !important;
+}
+
+.sidebar-footer a:hover {
+    color: #ff6b6b !important;
+    background: rgba(255,107,107,0.08) !important;
+}
+
+.sidebar-footer a:hover .nav-icon {
+    background: rgba(255,107,107,0.15) !important;
+    color: #ff6b6b !important;
+}
+
+/* ── Main Content Offset (follows --sidebar-w) ── */
+.content {
+    margin-left: var(--sidebar-w);
+    padding: 28px 32px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* ══════════════════════════════
+   MOBILE TOP BAR + OVERLAY
+══════════════════════════════ */
+
+.mobile-topbar {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    z-index: 1030;
+    align-items: center; gap: 12px;
+    padding: 0 14px;
+    background: rgba(13,15,26,.96);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 4px 18px rgba(0,0,0,.18);
+}
+
+.menu-toggle {
+    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.08); color: #fff;
+    transition: all .15s;
+}
+.menu-toggle:hover { background: rgba(79,110,247,.3); }
+.menu-toggle:active { transform: scale(.94); }
+.menu-toggle i { font-size: 22px; }
+
+.topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar-brand .brand-icon { width: 34px; height: 34px; border-radius: 9px; }
+.topbar-brand .brand-icon i { font-size: 18px; }
+.topbar-brand h3 { font-size: 14.5px; font-weight: 700; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.topbar-status { margin-left: auto; }
+
+.sidebar-overlay {
+    position: fixed; inset: 0; z-index: 1035;
+    background: rgba(8,10,22,.55);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    opacity: 0; visibility: hidden;
+    transition: opacity .25s, visibility .25s;
+}
+.sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+body.sidebar-open { overflow: hidden; }
+
+/* ── Tablet & below: off-canvas drawer ── */
+@media (max-width: 991.98px) {
+    :root { --sidebar-w: 280px; }
+
+    .sidebar {
+        transform: translateX(-102%);
+        max-width: 86vw;
+        box-shadow: none;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 12px 0 40px rgba(0,0,0,.45);
+    }
+
+    .sidebar-close { display: flex; }
+    .mobile-topbar { display: flex; }
+
+    .content {
+        margin-left: 0 !important;
+        padding: calc(var(--topbar-h) + 18px) 20px 24px;
+    }
+}
+
+/* ── Phones ── */
+@media (max-width: 575.98px) {
+    .content { padding: calc(var(--topbar-h) + 14px) 14px 20px; }
+    .topbar-status { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar, .sidebar-overlay { transition: none !important; }
+}
+
+</style>
+
+<!-- Mobile top bar (visible on tablets / phones only) -->
+<div class="mobile-topbar">
+    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="appSidebar" aria-expanded="false">
+        <i class="ti ti-menu-2"></i>
+    </button>
+    <div class="topbar-brand">
+        <div class="brand-icon"><i class="ti ti-brain"></i></div>
+        <h3>AI Inventory</h3>
+    </div>
+    <div class="status-pill topbar-status">
+        <div class="status-dot"></div>
+        <span class="status-text">Online</span>
+    </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="sidebar" id="appSidebar">
+
+    <!-- Brand -->
+    <div class="sidebar-brand">
+        <div class="brand-row">
+            <div class="brand-icon"><i class="ti ti-brain"></i></div>
+            <div class="brand-text">
+                <h3>AI Inventory</h3>
+                <p>Smart Business Suite</p>
+            </div>
+        </div>
+        <div class="status-pill">
+            <div class="status-dot"></div>
+            <span class="status-text">System Online</span>
+        </div>
+        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+            <i class="ti ti-x"></i>
+        </button>
+    </div>
+
+    <!-- Main Navigation -->
+    <div class="nav-section">
+        <div class="nav-label">Main</div>
+
+        <a href="/dashboard" class="{{ 'active' if request.path == '/dashboard' else '' }}">
+            <div class="nav-icon"><i class="ti ti-layout-dashboard"></i></div>
+            <span class="link-text">Dashboard</span>
+            <span class="nav-badge">Live</span>
+        </a>
+
+        <a href="/products" class="{{ 'active' if request.path == '/products' else '' }}">
+            <div class="nav-icon"><i class="ti ti-package"></i></div>
+            <span class="link-text">Add Product</span>
+        </a>
+
+        <a href="/productList" class="{{ 'active' if request.path == '/productList' else '' }}">
+            <div class="nav-icon"><i class="ti ti-list-details"></i></div>
+            <span class="link-text">Product List</span>
+        </a>
+
+        <a href="/billing" class="{{ 'active' if request.path == '/billing' else '' }}">
+            <div class="nav-icon"><i class="ti ti-currency-rupee"></i></div>
+            <span class="link-text">Sales Entry</span>
+        </a>
+
+        <a href="/salesHistory" class="{{ 'active' if request.path == '/salesHistory' else '' }}">
+            <div class="nav-icon"><i class="ti ti-trending-up"></i></div>
+            <span class="link-text">Sales History</span>
+        </a>
+    </div>
+
+    <!-- Intelligence Navigation -->
+    <div class="nav-section">
+        <div class="nav-label">Intelligence</div>
+
+        <a href="/prediction" class="{{ 'active' if request.path == '/prediction' else '' }}">
+            <div class="nav-icon"><i class="ti ti-robot"></i></div>
+            <span class="link-text">AI Prediction</span>
+            <span class="nav-badge new-badge">AI</span>
+        </a>
+
+        <a href="/purchaseCenter" class="{{ 'active' if request.path == '/purchaseCenter' else '' }}">
+            <div class="nav-icon"><i class="ti ti-building-warehouse"></i></div>
+            <span class="link-text">Purchase Center</span>
+        </a>
+
+        <a href="/purchaseOCR" class="{{ 'active' if request.path == '/purchaseOCR' else '' }}">
+            <div class="nav-icon"><i class="ti ti-scan"></i></div>
+            <span class="link-text">AI Purchase OCR</span>
+            <span class="nav-badge new-badge">AI</span>
+        </a>
+
+        <a href="/deadStock" class="{{ 'active' if request.path == '/deadStock' else '' }}">
+            <div class="nav-icon"><i class="ti ti-alert-triangle"></i></div>
+            <span class="link-text">Dead Stock</span>
+        </a>
+
+        <a href="/reports" class="{{ 'active' if request.path == '/reports' else '' }}">
+            <div class="nav-icon"><i class="ti ti-chart-bar"></i></div>
+            <span class="link-text">Reports</span>
+        </a>
+    </div>
+
+    <!-- More -->
+    <div class="nav-section">
+        <div class="nav-label">More</div>
+
+        <a href="/settings" class="{{ 'active' if request.path == '/settings' else '' }}">
+            <div class="nav-icon"><i class="ti ti-settings"></i></div>
+            <span class="link-text">Settings</span>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <a href="/logout">
+            <div class="nav-icon"><i class="ti ti-logout"></i></div>
+            <span class="link-text">Logout</span>
+        </a>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    var sidebar = document.getElementById('appSidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    var toggle  = document.getElementById('menuToggle');
+    var closeBtn = document.getElementById('sidebarClose');
+    var mq = window.matchMedia('(max-width: 991.98px)');
+
+    function setOpen(open) {
+        sidebar.classList.toggle('open', open);
+        overlay.classList.toggle('show', open);
+        document.body.classList.toggle('sidebar-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    toggle.addEventListener('click', function () { setOpen(!sidebar.classList.contains('open')); });
+    closeBtn.addEventListener('click', function () { setOpen(false); });
+    overlay.addEventListener('click', function () { setOpen(false); });
+
+    // Close drawer after tapping a menu link
+    sidebar.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () { if (mq.matches) setOpen(false); });
+    });
+
+    // Esc closes the drawer
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) setOpen(false);
+    });
+
+    // Reset state when resizing up to desktop
+    function onChange(e) { if (!e.matches) setOpen(false); }
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+
+    // Simple swipe-left to close
+    var startX = null;
+    sidebar.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    sidebar.addEventListener('touchend', function (e) {
+        if (startX !== null && startX - e.changedTouches[0].clientX > 60) setOpen(false);
+        startX = null;
+    }, { passive: true });
+})();
+</script>

@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Business Copilot</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+:root {
+    --brand: #4f6ef7; --brand2: #7c5dfa; --ink: #1a1d2e; --muted: #8a8fa8;
+    --line: #eef0f8; --soft: #f8f9fc; --red: #ef4444; --amber: #f59e0b;
+    --green: #22c55e; --cyan: #06b6d4;
+}
+body { background: #f0f2f7; font-family: 'Inter', system-ui, sans-serif; color: var(--ink); min-height: 100vh; margin: 0; }
+
+/* ══ SPOTLIGHT HOVER (follows the mouse) ══ */
+.stat-card:hover, .mini-box:hover, .purchase-item:hover, .purchase-summary-card:hover, .dead-card:hover {
+    background-image: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(79,110,247,.11), transparent 65%);
+}
+
+/* ══ TOPBAR ══ */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+.topbar-greeting { font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+.topbar-sub { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
+.logo-chip {
+    width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; font-size: 20px;
+    box-shadow: 0 6px 16px rgba(79,110,247,.38); animation: floaty 3.5s ease-in-out infinite;
+}
+@keyframes floaty { 50% { transform: translateY(-3px) rotate(-4deg); } }
+.btn-refresh {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 16px; border-radius: 10px;
+    background: #fff; border: 1px solid #e8eaf2; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s;
+}
+.btn-refresh:hover { background: #eef0ff; border-color: #c7d2ff; color: var(--brand); }
+.btn-refresh:hover i { transform: rotate(180deg); }
+.btn-refresh i { transition: transform .4s; font-size: 16px; }
+
+/* ══ AI HERO (aurora) ══ */
+.ai-hero {
+    position: relative; overflow: hidden; border-radius: 20px; padding: 28px 30px; margin-bottom: 20px; color: #fff;
+    background: #12142a; box-shadow: 0 18px 44px rgba(39,45,87,.32);
+}
+.aurora { position: absolute; inset: -40%; pointer-events: none; filter: blur(60px); opacity: .75;
+    background:
+        radial-gradient(circle at 25% 40%, rgba(79,110,247,.9), transparent 38%),
+        radial-gradient(circle at 70% 30%, rgba(124,93,250,.8), transparent 36%),
+        radial-gradient(circle at 55% 80%, rgba(6,182,212,.55), transparent 34%);
+    animation: spin 22s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 34px 34px; mask-image: radial-gradient(circle at 50% 0, #000, transparent 75%); -webkit-mask-image: radial-gradient(circle at 50% 0, #000, transparent 75%); }
+.ai-hero > .hero-inner { position: relative; z-index: 1; }
+.ai-title { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; }
+.ai-title .pulse { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--green); box-shadow: 0 0 0 0 rgba(34,197,94,.7); animation: pulse 1.8s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+.ai-subtitle { color: #c1c8e4; font-size: 12.5px; margin-top: 4px; }
+.ai-insight {
+    margin-top: 16px; padding: 18px 20px; border-radius: 14px; line-height: 1.8; font-size: 14px; white-space: pre-line; min-height: 70px;
+    background: rgba(10,12,30,.45); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(10px); overflow-wrap: anywhere;
+}
+.ai-insight.typing::after { content: '▍'; margin-left: 2px; color: #a5b4fc; animation: blink .8s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ══ STATS ══ */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.stat-card {
+    background-color: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--line); position: relative; overflow: hidden;
+    transition: transform .18s, box-shadow .18s; min-width: 0;
+}
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.09); }
+.stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card::before { content: ''; position: absolute; bottom: 0; right: 0; width: 90px; height: 90px; border-radius: 90px 0 14px 0; opacity: .06; }
+.stat-card.c1::after { background: linear-gradient(90deg, #dc2626, #ef4444); } .stat-card.c1::before { background: #ef4444; }
+.stat-card.c2::after { background: linear-gradient(90deg, #d97706, #f59e0b); } .stat-card.c2::before { background: #f59e0b; }
+.stat-card.c3::after { background: linear-gradient(90deg, #64748b, #94a3b8); } .stat-card.c3::before { background: #64748b; }
+.stat-card.c4::after { background: linear-gradient(90deg, #4f6ef7, #7c5dfa); } .stat-card.c4::before { background: #4f6ef7; }
+.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform .25s; }
+.stat-card:hover .stat-icon { transform: scale(1.12) rotate(-6deg); }
+.stat-icon i { font-size: 20px; }
+.stat-icon.red   { background: #fee2e2; color: #dc2626; }
+.stat-icon.amber { background: #fef3c7; color: #d97706; }
+.stat-icon.grey  { background: #e5e7eb; color: #475569; }
+.stat-icon.blue  { background: #eef0ff; color: var(--brand); }
+.stat-icon.green { background: #dcfce7; color: #16a34a; }
+.stat-label { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 3px; }
+.stat-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 10px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.stat-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.stat-chip.red { background: #fee2e2; color: #dc2626; } .stat-chip.amber { background: #fef3c7; color: #b45309; }
+.stat-chip.grey { background: #e5e7eb; color: #374151; } .stat-chip.blue { background: #eef0ff; color: var(--brand); }
+
+/* ══ PANELS ══ */
+.panel { background: #fff; border-radius: 14px; border: 1px solid var(--line); padding: 20px 22px; margin-bottom: 20px; }
+.panel.flush { padding: 20px 0 0; overflow: hidden; }
+.panel.flush .panel-header { padding: 0 22px; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+.panel-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.panel-title i { font-size: 18px; color: var(--brand); }
+.panel-badge { font-size: 10.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: #eef0ff; color: var(--brand); white-space: nowrap; }
+.panel-badge.red { background: #fee2e2; color: #dc2626; } .panel-badge.green { background: #dcfce7; color: #16a34a; } .panel-badge.dark { background: #1a1d2e; color: #fff; }
+
+/* ══ FORECAST ══ */
+.forecast-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; align-items: stretch; }
+.mini-box { background-color: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 16px; transition: border .15s; min-width: 0; }
+.mini-box:hover { border-color: #c7d2ff; }
+.mini-label { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+.big-num { font-size: 46px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+    background: linear-gradient(90deg, var(--brand), var(--brand2), var(--cyan)); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 4s linear infinite; }
+@keyframes shine { to { background-position: -200% 0; } }
+.mid-num { font-size: 28px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.mini-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.ring-row { display: flex; align-items: center; gap: 16px; }
+.ring { width: 84px; height: 84px; flex-shrink: 0; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+.ring .bg { stroke: #e5e7eb; }
+.ring .fg { stroke: url(#ringGrad); stroke-dasharray: 213.6; stroke-dashoffset: var(--off); animation: ringIn 1.4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes ringIn { from { stroke-dashoffset: 213.6; } }
+
+/* ══ SIMULATOR ══ */
+.sim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.sim-grid > div { min-width: 0; }
+.sim-grid label { font-size: 12px; font-weight: 600; margin-bottom: 6px; display: block; }
+.form-select, .form-control { border-radius: 10px; border: 1.5px solid #e8eaf2; font-size: 13px; padding: 9px 12px; background-color: #fafbfd; }
+.form-select:focus, .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(79,110,247,.15); background: #fff; }
+.form-range::-webkit-slider-thumb { background: var(--brand); }
+.form-range::-moz-range-thumb { background: var(--brand); }
+.demand-pill { background: #eef0ff; color: var(--brand); border-radius: 20px; padding: 1px 9px; font-weight: 700; margin-left: 6px; }
+.btn-brand {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 22px; border: none; border-radius: 10px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+    background: linear-gradient(135deg, var(--brand), var(--brand2)); box-shadow: 0 6px 16px rgba(79,110,247,.35); transition: .15s; position: relative; overflow: hidden;
+}
+.btn-brand::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-20deg); transition: left .5s; }
+.btn-brand:hover::after { left: 130%; }
+.btn-brand:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(79,110,247,.45); }
+.btn-brand:disabled { opacity: .65; transform: none; cursor: wait; }
+.sim-results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.sim-extra { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.sim-pop { animation: pop .45s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.rec-box { margin-top: 16px; border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.6; background: #eef0ff; border: 1px solid #dde2ff; color: #3d4166; }
+
+/* ══ TABLES ══ */
+.tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 22px 14px; }
+.search-box { position: relative; flex: 1; min-width: 180px; max-width: 280px; }
+.search-box i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+.search-box input { width: 100%; padding: 8px 12px 8px 34px; border-radius: 10px; border: 1.5px solid #e8eaf2; background: #fafbfd; font-size: 12.5px; outline: none; transition: .15s; }
+.search-box input:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(79,110,247,.12); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; border: 1.5px solid #e8eaf2; background: #fafbfd; color: #5a5f7d; cursor: pointer; transition: .15s; }
+.chip:hover { border-color: var(--brand); color: var(--brand); background: #f0f3ff; }
+.chip.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+.table { margin: 0 !important; --bs-table-bg: transparent; }
+.table th { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--soft); border-bottom: 1px solid var(--line); white-space: nowrap; padding: 11px 16px; }
+.table td { font-size: 13px; vertical-align: middle; padding: 13px 16px; border-bottom: 1px solid #f5f6fb; }
+.table tbody tr { transition: background .15s, box-shadow .15s; }
+.table tbody tr:hover { background: #fafbff; box-shadow: inset 3px 0 0 var(--brand); }
+.table tbody tr:last-child td { border-bottom: none; }
+.product-name { font-weight: 600; overflow-wrap: anywhere; }
+.cover-wrap { min-width: 130px; }
+.cover-bar { height: 6px; background: #f0f2f7; border-radius: 99px; overflow: hidden; margin-top: 5px; }
+.cover-bar i { display: block; height: 100%; border-radius: 99px; width: 0; transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
+.cover-bar .r { background: linear-gradient(90deg, #dc2626, #ef4444); } .cover-bar .o { background: linear-gradient(90deg, #ea580c, #f59e0b); }
+.cover-bar .b { background: linear-gradient(90deg, #4f6ef7, #06b6d4); } .cover-bar .g { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.risk-critical { color: #dc2626; font-weight: 700; } .risk-high { color: #ea580c; font-weight: 700; }
+.risk-medium { color: #2563eb; font-weight: 700; } .risk-healthy { color: #16a34a; font-weight: 700; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.pill.ok { background: #dcfce7; color: #166534; } .pill.warn { background: #fef3c7; color: #a15c00; }
+.pill.info { background: #e0f2fe; color: #075985; } .pill.off { background: #e5e7eb; color: #374151; }
+.pill.crit { background: #fee2e2; color: #b42318; animation: critGlow 1.8s ease-in-out infinite; }
+@keyframes critGlow { 50% { box-shadow: 0 0 0 4px rgba(239,68,68,.18); } }
+.btn-why { border: 1.5px solid #e8eaf2; background: #fff; border-radius: 8px; padding: 5px 11px; font-size: 12px; font-weight: 600; color: #5a5f7d; cursor: pointer; transition: .15s; white-space: nowrap; }
+.btn-why:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+.no-match { display: none; padding: 30px; text-align: center; color: var(--muted); font-size: 13px; }
+.purchase-qty { font-size: 18px; font-weight: 800; color: var(--brand); }
+.table .purchase-reason { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ══ SMART PURCHASE PLANNER ══ */
+.smart-purchase-card { position: relative; background: #fff; border-radius: 16px; border: 1px solid var(--line); margin-bottom: 20px; overflow: hidden; }
+.smart-purchase-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--brand), var(--brand2), var(--cyan), var(--green)); background-size: 200% 100%; animation: shine 6s linear infinite; }
+.smart-purchase-header { display: flex; align-items: center; justify-content: space-between; padding: 22px 24px 0; gap: 10px; flex-wrap: wrap; }
+.smart-purchase-header h5 { margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.smart-purchase-header h5 i { font-size: 18px; color: var(--brand); }
+.smart-purchase-body { padding: 18px 24px 24px; }
+.planner-intro { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; padding: 16px 18px; border-radius: 14px; background: linear-gradient(135deg, #f5f6ff, #f7f2ff); border: 1px solid #e3e6ff; }
+.purchase-plan-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 12px; color: #fff; font-size: 13.5px; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--brand), var(--brand2)); box-shadow: 0 8px 20px rgba(79,110,247,.4); transition: .18s; animation: btnPulse 2.6s ease-in-out infinite;
+}
+@keyframes btnPulse { 50% { box-shadow: 0 8px 20px rgba(79,110,247,.4), 0 0 0 7px rgba(79,110,247,.12); } }
+.purchase-plan-btn::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent); transform: skewX(-20deg); transition: left .55s; }
+.purchase-plan-btn:hover::after { left: 130%; }
+.purchase-plan-btn:hover { transform: translateY(-2px); }
+.purchase-plan-btn:disabled { opacity: .7; cursor: wait; animation: none; transform: none; }
+.purchase-empty { padding: 18px; border-radius: 12px; background: var(--soft); border: 1px dashed #dfe3f1; color: var(--muted); font-size: 13px; text-align: center; }
+.skel { border-radius: 12px; height: 74px; margin-bottom: 10px; background: linear-gradient(90deg, #f0f2f7 25%, #e6e9f5 37%, #f0f2f7 63%); background-size: 400% 100%; animation: skel 1.3s ease infinite; }
+@keyframes skel { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+.purchase-summary-card { background-color: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; height: 100%; position: relative; overflow: hidden; transition: transform .18s, box-shadow .18s; }
+.purchase-summary-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+.purchase-summary-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #c7d2ff; }
+.purchase-buy::before { background: #ef4444; } .purchase-consider::before { background: #f59e0b; } .purchase-avoid::before { background: #22c55e; }
+.summary-label { font-size: 11.5px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+.summary-value { font-size: 28px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+.alloc { margin-bottom: 22px; }
+.alloc-bar { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: #eef0f6; gap: 3px; }
+.alloc-bar span { display: block; height: 100%; width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+.alloc-buy { background: linear-gradient(90deg, #dc2626, #ef4444); } .alloc-consider { background: linear-gradient(90deg, #d97706, #f59e0b); } .alloc-avoid { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.alloc-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+.alloc-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.roi-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: #dcfce7; color: #166534; }
+.roi-chip.neg { background: #fee2e2; color: #b42318; }
+
+.group-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; margin: 0 0 12px; }
+.group-title .count { font-size: 11px; font-weight: 700; padding: 1px 9px; border-radius: 20px; background: #f0f2f7; color: #5a5f7d; }
+.purchase-item { background-color: #fff; border: 1px solid var(--line); border-left: 4px solid #c7d2ff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; transition: transform .18s, box-shadow .18s; animation: itemIn .5s cubic-bezier(.2,.8,.2,1) both; }
+.purchase-item:hover { transform: translateX(4px); box-shadow: 0 8px 20px rgba(0,0,0,.07); }
+@keyframes itemIn { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+.purchase-item.is-buy { border-left-color: #ef4444; } .purchase-item.is-consider { border-left-color: #f59e0b; } .purchase-item.is-avoid { border-left-color: #22c55e; }
+.purchase-item-name { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.purchase-item-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.purchase-item .purchase-reason { font-size: 12px; color: #5a5f7d; margin-top: 10px; line-height: 1.55; }
+.purchase-qty-badge { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+.buy-badge { background: #fee2e2; color: #b42318; animation: critGlow 1.8s ease-in-out infinite; }
+.consider-badge { background: #fef3c7; color: #a15c00; } .avoid-badge { background: #dcfce7; color: #166534; }
+.stock-track { height: 5px; background: #f0f2f7; border-radius: 99px; overflow: hidden; margin-top: 10px; display: flex; }
+.stock-track i { display: block; height: 100%; width: 0; transition: width 1s cubic-bezier(.2,.8,.2,1) .2s; }
+.stock-track .have { background: #94a3b8; } .stock-track .need-buy { background: #ef4444; } .stock-track .need-consider { background: #f59e0b; }
+.stock-key { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+.ai-purchase-decision { position: relative; overflow: hidden; border-radius: 14px; padding: 18px 20px; color: #fff; background: linear-gradient(135deg, #14172b, #272d57 60%, #3b2f7a); }
+.ai-purchase-decision h6 { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.ai-purchase-decision::after { content: ''; position: absolute; width: 200px; height: 200px; right: -60px; top: -80px; border-radius: 50%; background: rgba(124,93,250,.5); filter: blur(46px); }
+.ai-purchase-decision > * { position: relative; z-index: 1; font-size: 13.5px; overflow-wrap: anywhere; }
+
+/* ══ DEAD STOCK ══ */
+.dead-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
+.dead-card { border-radius: 12px; padding: 14px 16px; background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; transition: transform .15s; min-width: 0; }
+.dead-card:hover { transform: translateX(4px); }
+.dead-product { font-weight: 700; color: #991b1b; font-size: 13.5px; overflow-wrap: anywhere; }
+.dead-meta { font-size: 12px; color: #7f1d1d; opacity: .75; margin-top: 3px; line-height: 1.6; }
+.tip { border-radius: 10px; padding: 12px 14px; font-size: 12.5px; line-height: 1.6; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; display: flex; gap: 10px; }
+.empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+.empty-state i { display: block; font-size: 38px; color: var(--green); margin-bottom: 8px; }
+
+/* ══ MODAL ══ */
+.modal-content { border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.22); }
+.modal-header { background: linear-gradient(135deg, #14172b, #272d57); color: #fff; border: none; padding: 16px 22px; }
+.modal-header .btn-close { filter: invert(1); }
+.modal-title { font-size: 15px; font-weight: 700; }
+.modal-body { padding: 22px; }
+.reason-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--soft); border: 1px solid var(--line); margin-bottom: 8px; font-size: 13px; }
+.reason-item i { color: var(--brand); font-size: 16px; margin-top: 1px; }
+.ai-sum { border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.65; background: #ede9fe; color: #4c1d95; border: 1px solid #ddd6fe; margin-top: 16px; }
+.ai-rec { border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.65; background: #eef0ff; color: #3d4166; border: 1px solid #dde2ff; margin-top: 10px; }
+.ai-sum b, .ai-rec b { display: block; margin-bottom: 4px; }
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+
+/* Laptop */
+@media (max-width: 1280px) {
+    .stat-value { font-size: 26px; }
+    .big-num { font-size: 40px; }
+}
+
+/* Tablet: 2-up grids, tables scroll inside their panel */
+@media (max-width: 1100px) {
+    .stats-grid, .sim-results { grid-template-columns: repeat(2, 1fr); }
+    .forecast-grid { grid-template-columns: 1fr 1fr; }
+    .forecast-grid > .mini-box:first-child { grid-column: 1 / -1; }
+    .sim-grid { grid-template-columns: 1fr 1fr; }
+    .sim-grid > div:nth-child(2) { grid-column: 1 / -1; order: 3; }
+    .rtable { min-width: 820px; }
+    .table-responsive { -webkit-overflow-scrolling: touch; }
+}
+
+/* Tablet portrait / large phone */
+@media (max-width: 800px) {
+    .content { margin-left: 0 !important; }
+    .ai-hero { padding: 22px 22px; border-radius: 16px; }
+    .panel { padding: 18px; }
+    .panel.flush { padding: 18px 0 0; }
+    .panel.flush .panel-header { padding: 0 18px; }
+    .tools { padding: 0 18px 14px; }
+}
+
+@media (max-width: 700px) {
+    .dead-grid, .sim-extra { grid-template-columns: 1fr; }
+    .big-num { font-size: 36px; }
+}
+
+/* ── Phones & small tablets: tables become cards ── */
+@media (max-width: 767.98px) {
+
+    .rtable { min-width: 0 !important; }
+    .rtable thead { display: none; }
+    .rtable, .rtable tbody { display: block; width: 100%; }
+    .rtable tbody { padding: 4px 12px 12px; background: #fafbfe; }
+
+    .rtable tbody tr {
+        position: relative;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px;
+        margin-top: 10px; padding: 14px;
+        background: #fff; border: 1px solid var(--line); border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .rtable tbody tr:hover { box-shadow: 0 6px 18px rgba(79,110,247,.12), inset 3px 0 0 var(--brand); background: #fff; }
+
+    .table.rtable tbody tr td { display: block; padding: 0; border: 0; min-width: 0; box-shadow: none; background: transparent; }
+    .rtable tbody td[data-label]::before {
+        content: attr(data-label); display: block; margin-bottom: 4px;
+        font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #a3a8bf;
+    }
+    .rtable td.td-product, .rtable td.td-wide { grid-column: 1 / -1; }
+    .rtable td.td-product { font-size: 14px; }
+    .rtable td.td-rank { position: absolute; top: 14px; right: 14px; font-size: 11px; background: #f0f2f7; padding: 2px 9px; border-radius: 20px; color: #5a5f7d; }
+    .rtable td.td-rank::before { content: '#'; }
+    .rtable td.td-rank ~ td.td-product, .rtable tr:has(.td-rank) td.td-product { padding-right: 44px; }
+    .table.rtable tbody tr td.td-action { grid-column: 1 / -1; padding-top: 12px; border-top: 1px dashed #e8eaf2; }
+    .td-action .btn-why { width: 100%; padding: 10px 12px; font-size: 13px; }
+    .cover-wrap { min-width: 0; }
+
+    /* filters */
+    .tools { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 0 16px 14px; }
+    .search-box { max-width: none; min-width: 0; }
+    .search-box input { font-size: 16px; padding: 10px 12px 10px 34px; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: 0 0 auto; padding: 8px 14px; }
+
+    .no-match { padding: 30px 16px; }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+    .topbar { margin-bottom: 16px; }
+    .topbar-greeting { font-size: 18px; }
+    .logo-chip { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+    .topbar-sub { font-size: 12px; }
+    .btn-refresh { width: 100%; padding: 11px 16px; }
+
+    .ai-hero { padding: 18px 16px; margin-bottom: 14px; }
+    .ai-title { font-size: 16px; }
+    .ai-insight { padding: 14px 14px; font-size: 13px; line-height: 1.7; margin-top: 12px; }
+
+    .stats-grid { gap: 10px; margin-bottom: 16px; }
+    .stat-card { padding: 14px; }
+    .stat-icon { width: 36px; height: 36px; margin-bottom: 10px; }
+    .stat-value { font-size: 22px; margin-bottom: 8px; }
+    .stat-chip { font-size: 10px; }
+
+    .panel { padding: 16px 14px; border-radius: 12px; margin-bottom: 16px; }
+    .panel.flush { padding: 16px 0 0; }
+    .panel.flush .panel-header { padding: 0 14px; }
+
+    .forecast-grid { grid-template-columns: 1fr; }
+    .sim-grid { grid-template-columns: 1fr; gap: 14px; }
+    .sim-grid > div:nth-child(2) { grid-column: auto; order: 0; }
+    .form-select, .form-control { font-size: 16px; padding: 10px 12px; }   /* no iOS zoom */
+    #simulateBtn, .purchase-plan-btn { width: 100%; }
+    .sim-results { gap: 10px; }
+    .sim-results .stat-value { font-size: 20px; }
+    .sim-extra { gap: 10px; }
+
+    .smart-purchase-header { padding: 18px 16px 0; }
+    .smart-purchase-body { padding: 14px 16px 18px; }
+    .planner-intro { padding: 14px; }
+    .summary-value { font-size: 24px; }
+    .purchase-item { padding: 12px 12px; }
+    .purchase-item > .d-flex { flex-wrap: wrap; }
+    .ai-purchase-decision { padding: 16px 16px; }
+    .alloc-legend { gap: 12px; }
+
+    .empty-state { padding: 30px 16px; }
+    .tip { padding: 11px 12px; }
+
+    /* modal goes full-screen on phones (modal-fullscreen-sm-down) */
+    .modal-body { padding: 16px; }
+    .modal-header { padding: 14px 16px; }
+}
+
+@media (max-width: 380px) {
+    .stats-grid, .sim-results { grid-template-columns: 1fr; }
+    .big-num { font-size: 32px; }
+    .rtable tbody tr { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <div>
+            <div class="topbar-greeting"><span class="logo-chip"><i class="ti ti-sparkles"></i></span> AI Business Copilot</div>
+            <div class="topbar-sub">Demand forecasting, stock risk and purchase planning</div>
+        </div>
+        <button class="btn-refresh" onclick="location.reload()"><i class="ti ti-refresh"></i> Refresh analysis</button>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="ai-hero">
+        <div class="aurora"></div>
+        <div class="hero-inner">
+            <div class="ai-title"><span class="pulse"></span> AI Business Insight</div>
+            <div class="ai-subtitle">Based on your recent inventory and sales behaviour</div>
+            <div class="ai-insight" id="aiInsightText">{% if ai_insight %}{{ ai_insight }}{% else %}AI insight is currently unavailable.{% endif %}</div>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="stats-grid">
+        <div class="stat-card c1">
+            <div class="stat-icon red"><i class="ti ti-alert-octagon"></i></div>
+            <div class="stat-label">Critical / out of stock</div>
+            <div class="stat-value" data-count="{{ critical_products }}">{{ critical_products }}</div>
+            <span class="stat-chip red"><i class="ti ti-flame"></i> Act now</span>
+        </div>
+        <div class="stat-card c2">
+            <div class="stat-icon amber"><i class="ti ti-alert-triangle"></i></div>
+            <div class="stat-label">High risk</div>
+            <div class="stat-value" data-count="{{ high_risk_products }}">{{ high_risk_products }}</div>
+            <span class="stat-chip amber"><i class="ti ti-clock-exclamation"></i> Nearing stock-out</span>
+        </div>
+        <div class="stat-card c3">
+            <div class="stat-icon grey"><i class="ti ti-trending-down"></i></div>
+            <div class="stat-label">No recent demand</div>
+            <div class="stat-value" data-count="{{ no_demand_products }}">{{ no_demand_products }}</div>
+            <span class="stat-chip grey"><i class="ti ti-calendar-off"></i> No sales in 30 days</span>
+        </div>
+        <div class="stat-card c4">
+            <div class="stat-icon blue"><i class="ti ti-skull"></i></div>
+            <div class="stat-label">Dead / inactive stock</div>
+            <div class="stat-value" data-count="{{ dead_stock_products }}">{{ dead_stock_products }}</div>
+            <span class="stat-chip blue"><i class="ti ti-eye"></i> Needs review</span>
+        </div>
+    </div>
+
+    <!-- Forecast -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title"><i class="ti ti-chart-line"></i> Sales forecast</span>
+            <span class="panel-badge">Next 7 days</span>
+        </div>
+        <div class="forecast-grid">
+            <div class="mini-box">
+                <div class="mini-label">Predicted sales</div>
+                <div class="big-num" data-count="{{ forecast_7_day_sales }}">{{ forecast_7_day_sales }}</div>
+                <div class="mini-sub">units expected to be sold</div>
+            </div>
+            <div class="mini-box">
+                <div class="mini-label">Forecast confidence</div>
+                {% if total_30_day_sales == 0 %}
+                    {% set pct = 6 %}{% set lvl_text = 'Very low' %}{% set lvl_cls = 'text-secondary' %}
+                {% elif total_30_day_sales <= 3 %}
+                    {% set pct = 33 %}{% set lvl_text = 'Low' %}{% set lvl_cls = 'text-warning' %}
+                {% elif total_30_day_sales <= 15 %}
+                    {% set pct = 66 %}{% set lvl_text = 'Medium' %}{% set lvl_cls = 'text-primary' %}
+                {% else %}
+                    {% set pct = 96 %}{% set lvl_text = 'High' %}{% set lvl_cls = 'text-success' %}
+                {% endif %}
+                <div class="ring-row">
+                    <svg class="ring" viewBox="0 0 84 84" style="--off: {{ (213.6 * (1 - pct / 100)) | round(1) }}">
+                        <defs>
+                            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#4f6ef7"/><stop offset="1" stop-color="#22c55e"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="bg" cx="42" cy="42" r="34"/>
+                        <circle class="fg" cx="42" cy="42" r="34"/>
+                    </svg>
+                    <div>
+                        <div class="mid-num {{ lvl_cls }}">{{ lvl_text }}</div>
+                        <div class="mini-sub">based on 30-day sales volume</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mini-box">
+                <div class="mini-label">Historical sales</div>
+                <div class="mid-num" data-count="{{ total_30_day_sales }}">{{ total_30_day_sales }}</div>
+                <div class="mini-sub">units in the last 30 days</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What-if simulator -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title"><i class="ti ti-adjustments-bolt"></i> What-if simulator</span>
+            <span class="panel-badge dark">Scenario analysis</span>
+        </div>
+
+        <div class="sim-grid">
+            <div>
+                <label for="simProduct">Product</label>
+                <select id="simProduct" class="form-select">
+                    <option value="">Select a product</option>
+                    {% for product in predictions %}
+                    <option value="{{ product.pid }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="demandIncrease">Expected demand increase <span id="demandValue" class="demand-pill">30%</span></label>
+                <input type="range" class="form-range" id="demandIncrease" min="0" max="200" value="30" step="5">
+                <div class="d-flex justify-content-between"><small class="text-muted">0%</small><small class="text-muted">200%</small></div>
+            </div>
+            <div>
+                <label for="additionalPurchase">Additional purchase (units)</label>
+                <input type="number" id="additionalPurchase" class="form-control" value="0" min="0" inputmode="numeric" placeholder="Example: 20">
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button id="simulateBtn" class="btn-brand"><i class="ti ti-player-play-filled"></i> Run simulation</button>
+        </div>
+
+        <div id="simulationLoading" class="text-center mt-4" style="display:none;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2 text-muted small">Calculating the scenario...</div>
+        </div>
+
+        <div id="simulationResult" class="mt-4" style="display:none;">
+            <hr>
+            <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+                <h5 id="resultProduct" class="fw-bold m-0"></h5>
+                <span id="resultStatus" class="badge"></span>
+            </div>
+
+            <div class="sim-results">
+                <div class="stat-card c4">
+                    <div class="stat-icon blue"><i class="ti ti-package"></i></div>
+                    <div class="stat-label">Simulated stock</div>
+                    <div id="resultStock" class="stat-value mb-0">-</div>
+                </div>
+                <div class="stat-card c2">
+                    <div class="stat-icon amber"><i class="ti ti-trending-up"></i></div>
+                    <div class="stat-label">Projected 30-day sales</div>
+                    <div id="resultSales" class="stat-value mb-0">-</div>
+                </div>
+                <div class="stat-card c4">
+                    <div class="stat-icon blue"><i class="ti ti-currency-rupee"></i></div>
+                    <div class="stat-label">Projected revenue</div>
+                    <div id="resultRevenue" class="stat-value mb-0 text-primary">-</div>
+                </div>
+                <div class="stat-card c3">
+                    <div class="stat-icon green"><i class="ti ti-coins"></i></div>
+                    <div class="stat-label">Projected profit</div>
+                    <div id="resultProfit" class="stat-value mb-0 text-success">-</div>
+                </div>
+            </div>
+
+            <div class="sim-extra">
+                <div class="mini-box">
+                    <div class="mini-label">Projected daily demand</div>
+                    <strong id="resultDailyDemand" style="font-size:22px;">-</strong> <span class="text-muted small">units/day</span>
+                </div>
+                <div class="mini-box">
+                    <div class="mini-label">Stock coverage</div>
+                    <strong id="resultCoverage" style="font-size:22px;">-</strong>
+                </div>
+                <div class="mini-box">
+                    <div class="mini-label">Profit change</div>
+                    <strong id="resultProfitChange" style="font-size:22px;">-</strong>
+                </div>
+            </div>
+
+            <div id="simulationRecommendation" class="rec-box"></div>
+        </div>
+    </div>
+
+    <!-- Stock-out prediction -->
+    <div class="panel flush">
+        <div class="panel-header">
+            <span class="panel-title"><i class="ti ti-radar-2"></i> Stock-out prediction</span>
+            <span class="panel-badge red">AI risk analysis</span>
+        </div>
+
+        <div class="tools">
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="productSearch" placeholder="Search products"></div>
+            <div class="chips" id="riskChips">
+                <button class="chip active" data-risk="ALL">All</button>
+                <button class="chip" data-risk="URGENT">Critical / out</button>
+                <button class="chip" data-risk="HIGH">High</button>
+                <button class="chip" data-risk="MEDIUM">Medium</button>
+                <button class="chip" data-risk="HEALTHY">Healthy</button>
+                <button class="chip" data-risk="NO DEMAND">No demand</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table rtable" id="riskTable">
+                <thead>
+                <tr>
+                    <th>Product</th><th>Stock</th><th>30D sales</th><th>Daily demand</th>
+                    <th>Stock coverage</th><th>Risk</th><th>Demand</th><th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for product in predictions %}
+                <tr data-name="{{ product.name|lower }}"
+                    data-risk="{% if product.risk == 'OUT OF STOCK' or product.risk == 'CRITICAL' %}URGENT{% else %}{{ product.risk }}{% endif %}">
+                    <td class="td-product"><span class="product-name">{{ product.name }}</span></td>
+                    <td data-label="Stock"><strong>{{ product.stock }}</strong></td>
+                    <td data-label="30D sales">{{ product.sold_qty }}</td>
+                    <td data-label="Daily demand">{{ product.avg_daily_demand }} / day</td>
+                    <td class="cover-wrap" data-label="Stock coverage">
+                        {% if product.days_until_stockout is not none %}
+                            {% if product.days_until_stockout <= 3 %}
+                                <span class="risk-critical">{{ product.days_until_stockout }} days</span>
+                                {% set bar = 'r' %}
+                            {% elif product.days_until_stockout <= 7 %}
+                                <span class="risk-high">{{ product.days_until_stockout }} days</span>
+                                {% set bar = 'o' %}
+                            {% elif product.days_until_stockout <= 30 %}
+                                <span class="risk-medium">{{ product.days_until_stockout }} days</span>
+                                {% set bar = 'b' %}
+                            {% else %}
+                                <span class="risk-healthy">Healthy</span>
+                                {% set bar = 'g' %}
+                            {% endif %}
+                            <div class="cover-bar"><i class="{{ bar }}" data-w="{{ [ (product.days_until_stockout / 30 * 100) | round, 100 ] | min }}"></i></div>
+                        {% else %}
+                            <span class="text-muted">No demand</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Risk">
+                        {% if product.risk == "OUT OF STOCK" %}
+                            <span class="pill crit"><i class="ti ti-circle-x"></i> Out of stock</span>
+                        {% elif product.risk == "CRITICAL" %}
+                            <span class="pill crit"><i class="ti ti-alert-octagon"></i> Critical</span>
+                        {% elif product.risk == "HIGH" %}
+                            <span class="pill" style="background:#ffedd5;color:#c2410c;"><i class="ti ti-alert-triangle"></i> High</span>
+                        {% elif product.risk == "MEDIUM" %}
+                            <span class="pill info"><i class="ti ti-info-circle"></i> Medium</span>
+                        {% elif product.risk == "NO DEMAND" %}
+                            <span class="pill off"><i class="ti ti-minus"></i> No demand</span>
+                        {% else %}
+                            <span class="pill ok"><i class="ti ti-circle-check"></i> Healthy</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Demand">
+                        {% if product.demand_level == "HIGH" %}
+                            <span class="pill ok"><i class="ti ti-flame"></i> High</span>
+                        {% elif product.demand_level == "MODERATE" %}
+                            <span class="pill warn">Moderate</span>
+                        {% elif product.demand_level == "LOW" %}
+                            <span class="pill info">Low</span>
+                        {% else %}
+                            <span class="pill off">No sales</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-action">
+                        <button class="btn-why" data-pid="{{ product.pid }}" data-name="{{ product.name|e }}">
+                            <i class="ti ti-zoom-question"></i> Why?
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="no-match" id="noMatch">No products match your filter.</div>
+        </div>
+    </div>
+
+    <!-- AI Smart Purchase Planner -->
+    <div class="smart-purchase-card">
+        <div class="smart-purchase-header">
+            <h5><i class="ti ti-wand"></i> AI Smart Purchase Planner</h5>
+            <span class="panel-badge dark">AI decision engine</span>
+        </div>
+
+        <div class="smart-purchase-body">
+            <div class="planner-intro">
+                <div>
+                    <div class="fw-bold">Make smarter purchasing decisions</div>
+                    <div class="text-muted small">AI reviews recent demand, stock coverage and inventory risk, then tells you what to buy, what to watch and what to skip.</div>
+                </div>
+                <button id="generatePurchasePlanBtn" class="purchase-plan-btn" onclick="generateSmartPurchasePlan()">
+                    <i class="ti ti-sparkles"></i> Generate purchase plan
+                </button>
+            </div>
+
+            <div id="purchasePlanLoading" style="display:none;">
+                <div class="skel"></div><div class="skel"></div><div class="skel" style="height:50px;"></div>
+            </div>
+
+            <div id="purchasePlanError" class="alert alert-danger" style="display:none;"></div>
+
+            <div id="purchasePlanResults" style="display:none;">
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="purchase-summary-card purchase-buy">
+                            <div class="summary-label">Buy now</div>
+                            <div id="buyNowCount" class="summary-value text-danger">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="purchase-summary-card purchase-consider">
+                            <div class="summary-label">Consider buying</div>
+                            <div id="considerCount" class="summary-value text-warning">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="purchase-summary-card purchase-avoid">
+                            <div class="summary-label">Do not buy</div>
+                            <div id="avoidCount" class="summary-value text-success">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alloc">
+                    <div class="alloc-bar">
+                        <span id="allocBuy" class="alloc-buy"></span>
+                        <span id="allocConsider" class="alloc-consider"></span>
+                        <span id="allocAvoid" class="alloc-avoid"></span>
+                    </div>
+                    <div class="alloc-legend">
+                        <span><i style="background:#ef4444"></i>Buy now</span>
+                        <span><i style="background:#f59e0b"></i>Consider</span>
+                        <span><i style="background:#22c55e"></i>Do not buy</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="purchase-summary-card">
+                            <div class="summary-label">Estimated investment</div>
+                            <div id="purchaseInvestment" class="summary-value">₹0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="purchase-summary-card">
+                            <div class="summary-label">Expected revenue</div>
+                            <div id="purchaseRevenue" class="summary-value">₹0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="purchase-summary-card">
+                            <div class="summary-label">Expected profit</div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div id="purchaseProfit" class="summary-value text-success">₹0</div>
+                                <span id="roiChip" class="roi-chip" style="display:none;"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="group-title"><i class="ti ti-shopping-cart-exclamation text-danger"></i> Buy now <span class="count" id="buyNowTag">0</span></h6>
+                    <div id="buyNowList"></div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="group-title"><i class="ti ti-eye-check text-warning"></i> Consider buying <span class="count" id="considerTag">0</span></h6>
+                    <div id="considerList"></div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="group-title"><i class="ti ti-hand-stop text-success"></i> Do not buy <span class="count" id="avoidTag">0</span></h6>
+                    <div id="avoidList"></div>
+                </div>
+
+                <div class="ai-purchase-decision">
+                    <h6><i class="ti ti-brain"></i> AI purchase decision</h6>
+                    <div id="aiPurchaseSummary" style="line-height:1.7;">AI analysis will appear here.</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase advisor -->
+    <div class="panel flush">
+        <div class="panel-header">
+            <span class="panel-title"><i class="ti ti-shopping-cart-bolt"></i> AI purchase advisor</span>
+            <span class="panel-badge green">Smart recommendation</span>
+        </div>
+
+        {% if purchase_advisor %}
+        <div class="table-responsive">
+            <table class="table rtable">
+                <thead>
+                <tr><th>Product</th><th>Current stock</th><th>30D sales</th><th>Daily demand</th><th>Recommended purchase</th><th>Confidence</th></tr>
+                </thead>
+                <tbody>
+                {% for product in purchase_advisor %}
+                <tr>
+                    <td class="td-product"><span class="product-name">{{ product.name }}</span></td>
+                    <td data-label="Current stock">{{ product.stock }}</td>
+                    <td data-label="30D sales">{{ product.sold_qty }}</td>
+                    <td data-label="Daily demand">{{ product.avg_daily_demand }}</td>
+                    <td class="td-wide" data-label="Recommended purchase">
+                        <span class="purchase-qty">+{{ product.recommended_purchase }}</span> units
+                        <div class="purchase-reason">Based on 30-day demand + 10% safety stock</div>
+                    </td>
+                    <td data-label="Confidence">
+                        {% if product.forecast_confidence == "HIGH" %}<span class="pill ok">High</span>
+                        {% elif product.forecast_confidence == "MEDIUM" %}<span class="pill info">Medium</span>
+                        {% elif product.forecast_confidence == "LOW" %}<span class="pill warn">Low</span>
+                        {% else %}<span class="pill off">Very low</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="ti ti-circle-check"></i>
+            <b>No urgent purchase needed</b><br>Current stock looks sufficient for recent demand.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Dead stock -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title"><i class="ti ti-skull"></i> Dead stock detector</span>
+            <span class="panel-badge red">Inventory risk</span>
+        </div>
+
+        {% if dead_stock_list %}
+        <div class="dead-grid">
+            {% for product in dead_stock_list %}
+            <div class="dead-card">
+                <div class="dead-product">{{ product.name }}</div>
+                <div class="dead-meta">
+                    Stock: <strong>{{ product.stock }}</strong> &nbsp;|&nbsp; 30-day sales: {{ product.sold_qty }}
+                    &nbsp;|&nbsp;
+                    {% if product.days_since_sale is not none %}Last sale {{ product.days_since_sale }} days ago{% else %}No recent sale{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="tip">
+            <i class="ti ti-bulb" style="font-size:18px;"></i>
+            <div><b>AI recommendation:</b> Consider discounts, bundles or promotions, and pause new purchases for inactive products.</div>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="ti ti-confetti"></i>No dead stock detected.</div>
+        {% endif %}
+    </div>
+
+    <!-- Fast moving -->
+    <div class="panel flush">
+        <div class="panel-header">
+            <span class="panel-title"><i class="ti ti-rocket"></i> Fast moving products</span>
+            <span class="panel-badge green">Top 5</span>
+        </div>
+
+        {% if fast_moving %}
+        <div class="table-responsive">
+            <table class="table rtable">
+                <thead>
+                <tr><th>#</th><th>Product</th><th>Sold / 30 days</th><th>Daily demand</th><th>Stock</th><th>Movement</th><th>Confidence</th></tr>
+                </thead>
+                <tbody>
+                {% for product in fast_moving %}
+                <tr>
+                    <td class="td-rank"><strong>{{ loop.index }}</strong></td>
+                    <td class="td-product"><span class="product-name">{{ product.name }}</span></td>
+                    <td data-label="Sold / 30 days">{{ product.sold_qty }}</td>
+                    <td data-label="Daily demand">{{ product.avg_daily_demand }}</td>
+                    <td data-label="Stock">{{ product.stock }}</td>
+                    <td data-label="Movement">
+                        {% if product.movement == "FAST" %}<span class="pill ok"><i class="ti ti-rocket"></i> Fast</span>
+                        {% elif product.movement == "MEDIUM" %}<span class="pill info"><i class="ti ti-bolt"></i> Medium</span>
+                        {% elif product.movement == "SLOW" %}<span class="pill warn"><i class="ti ti-hourglass"></i> Slow</span>
+                        {% else %}<span class="pill off">No sales</span>{% endif %}
+                    </td>
+                    <td data-label="Confidence">
+                        {% if product.forecast_confidence == "HIGH" %}<span class="pill ok">High</span>
+                        {% elif product.forecast_confidence == "MEDIUM" %}<span class="pill info">Medium</span>
+                        {% elif product.forecast_confidence == "LOW" %}<span class="pill warn">Low</span>
+                        {% else %}<span class="pill off">Very low</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="ti ti-chart-bar"></i>Not enough sales history yet.</div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Explanation modal -->
+<div class="modal fade" id="aiExplanationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ti ti-brain"></i> AI product explanation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="explanationLoading" class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 text-muted small">Analyzing this product...</p>
+                </div>
+
+                <div id="explanationContent" style="display:none;">
+                    <h4 id="explanationProduct" class="fw-bold"></h4>
+                    <div class="row g-3 mt-1">
+                        <div class="col-6 col-md-3"><div class="mini-box"><div class="mini-label">Current stock</div><h5 id="explanationStock" class="m-0 fw-bold"></h5></div></div>
+                        <div class="col-6 col-md-3"><div class="mini-box"><div class="mini-label">30D sales</div><h5 id="explanationSales" class="m-0 fw-bold"></h5></div></div>
+                        <div class="col-6 col-md-3"><div class="mini-box"><div class="mini-label">Demand</div><h5 id="explanationDemand" class="m-0 fw-bold"></h5></div></div>
+                        <div class="col-6 col-md-3"><div class="mini-box"><div class="mini-label">Confidence</div><h5 id="explanationConfidence" class="m-0 fw-bold"></h5></div></div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6 class="fw-bold">Why this status?</h6>
+                        <div id="explanationReasons" class="mt-2"></div>
+                    </div>
+
+                    <div class="ai-sum"><b>AI analysis</b><div id="aiSummary"></div></div>
+                    <div class="ai-rec"><b>Recommendation</b><div id="explanationRecommendation"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ═══ Number count-up helper ═══
+function animateNum(el, target, fmt) {
+    target = Number(target) || 0;
+    fmt = fmt || function (v) { return Math.round(v); };
+    if (reduceMotion || target === 0) { el.textContent = fmt(target); return; }
+    const start = performance.now(), dur = 1000;
+    (function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(target * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+    })(start);
+}
+function inrFmt(v) { return "₹" + Number(v).toLocaleString("en-IN", { maximumFractionDigits: 0 }); }
+
+// ═══ Page load: count-ups, coverage bars, typewriter insight ═══
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-count]").forEach(function (el) {
+        animateNum(el, el.dataset.count);
+    });
+
+    const bars = document.querySelectorAll(".cover-bar i");
+    const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.style.width = e.target.dataset.w + "%"; io.unobserve(e.target); }
+        });
+    }, { threshold: 0.2 });
+    bars.forEach(function (b) { io.observe(b); });
+
+    const box = document.getElementById("aiInsightText");
+    const full = box.textContent.trim();
+    if (!reduceMotion && full.length > 0) {
+        box.textContent = "";
+        box.classList.add("typing");
+        const step = Math.max(1, Math.ceil(full.length / 140));
+        let i = 0;
+        const timer = setInterval(function () {
+            i += step;
+            box.textContent = full.slice(0, i);
+            if (i >= full.length) { clearInterval(timer); box.textContent = full; box.classList.remove("typing"); }
+        }, 16);
+    }
+});
+
+// ═══ Mouse-follow spotlight on cards ═══
+document.addEventListener("mousemove", function (e) {
+    const card = e.target.closest(".stat-card, .mini-box, .purchase-item, .purchase-summary-card, .dead-card");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    card.style.setProperty("--my", (e.clientY - r.top) + "px");
+});
+
+// ═══ Search + risk filter ═══
+let activeRisk = "ALL";
+function applyFilters() {
+    const q = document.getElementById("productSearch").value.trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll("#riskTable tbody tr").forEach(function (row) {
+        const ok = row.dataset.name.includes(q) && (activeRisk === "ALL" || row.dataset.risk === activeRisk);
+        row.style.display = ok ? "" : "none";
+        if (ok) shown++;
+    });
+    document.getElementById("noMatch").style.display = shown ? "none" : "block";
+}
+document.getElementById("productSearch").addEventListener("input", applyFilters);
+document.getElementById("riskChips").addEventListener("click", function (e) {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    document.querySelectorAll("#riskChips .chip").forEach(function (c) { c.classList.remove("active"); });
+    chip.classList.add("active");
+    activeRisk = chip.dataset.risk;
+    applyFilters();
+});
+
+// ═══ Product explanation ═══
+document.querySelectorAll(".btn-why").forEach(function (btn) {
+    btn.addEventListener("click", function () { showProductExplanation(btn.dataset.pid, btn.dataset.name); });
+});
+
+async function showProductExplanation(productId, productName) {
+    const modal = new bootstrap.Modal(document.getElementById("aiExplanationModal"));
+    modal.show();
+    document.getElementById("explanationLoading").style.display = "block";
+    document.getElementById("explanationContent").style.display = "none";
+
+    try {
+        const response = await fetch("/api/product-explanation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ product_id: productId })
+        });
+        const data = await response.json();
+
+        if (!data.success) { alert(data.message || "Unable to analyze product."); return; }
+
+        document.getElementById("explanationProduct").innerText = data.product_name || productName;
+        document.getElementById("explanationStock").innerText = data.stock;
+        document.getElementById("explanationSales").innerText = data.sold_qty;
+        document.getElementById("explanationDemand").innerText = data.demand_level;
+        document.getElementById("explanationConfidence").innerText = data.confidence;
+
+        const reasons = document.getElementById("explanationReasons");
+        reasons.innerHTML = "";
+        (data.reasons || []).forEach(function (reason) {
+            const div = document.createElement("div");
+            div.className = "reason-item";
+            div.innerHTML = '<i class="ti ti-point-filled"></i><span></span>';
+            div.querySelector("span").innerText = reason;
+            reasons.appendChild(div);
+        });
+
+        document.getElementById("aiSummary").innerText = data.ai_summary || "";
+        document.getElementById("explanationRecommendation").innerText = data.recommendation || "";
+
+        document.getElementById("explanationLoading").style.display = "none";
+        document.getElementById("explanationContent").style.display = "block";
+    } catch (error) {
+        console.error("AI Explanation Error:", error);
+        alert("Something went wrong while analyzing the product.");
+    } finally {
+        document.getElementById("explanationLoading").style.display = "none";
+    }
+}
+
+// ═══ What-if simulator ═══
+const demandSlider = document.getElementById("demandIncrease");
+const demandValue = document.getElementById("demandValue");
+const simulateBtn = document.getElementById("simulateBtn");
+const simLoading = document.getElementById("simulationLoading");
+const simResult = document.getElementById("simulationResult");
+
+demandSlider.addEventListener("input", function () { demandValue.innerText = this.value + "%"; });
+
+function inr(n, sign) {
+    const v = Number(n);
+    const s = Math.abs(v).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    return (sign ? (v > 0 ? "+" : v < 0 ? "-" : "") : "") + "₹" + s;
+}
+
+simulateBtn.addEventListener("click", async function () {
+    const productId = document.getElementById("simProduct").value;
+    const demandIncrease = demandSlider.value;
+    const additionalPurchase = document.getElementById("additionalPurchase").value;
+
+    if (!productId) { alert("Please select a product first."); return; }
+
+    simResult.style.display = "none";
+    simLoading.style.display = "block";
+    simulateBtn.disabled = true;
+
+    try {
+        const response = await fetch("/api/simulate-business", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ product_id: productId, demand_increase: demandIncrease, additional_purchase: additionalPurchase })
+        });
+        const data = await response.json();
+
+        if (!data.success) { alert(data.message || "Simulation failed."); return; }
+
+        document.getElementById("resultProduct").innerText = data.product_name;
+        const status = document.getElementById("resultStatus");
+        status.innerText = data.stock_status;
+        status.className = "badge bg-" + data.stock_status_class;
+
+        document.getElementById("resultStock").innerText = data.simulated_stock;
+        document.getElementById("resultSales").innerText = data.projected_30_day_sales;
+        document.getElementById("resultRevenue").innerText = inr(data.projected_revenue);
+        document.getElementById("resultProfit").innerText = inr(data.projected_profit);
+        document.getElementById("resultDailyDemand").innerText = data.projected_daily_demand;
+        document.getElementById("resultCoverage").innerText =
+            data.stock_coverage_days !== null ? data.stock_coverage_days + " days" : "No demand";
+
+        const pc = document.getElementById("resultProfitChange");
+        const change = Number(data.profit_change);
+        pc.innerText = change === 0 ? "₹0" : inr(change, true);
+        pc.className = change > 0 ? "text-success" : change < 0 ? "text-danger" : "text-secondary";
+
+        document.getElementById("simulationRecommendation").innerText = data.recommendation;
+
+        simResult.style.display = "block";
+        simResult.classList.remove("sim-pop");
+        void simResult.offsetWidth;
+        simResult.classList.add("sim-pop");
+        simResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (error) {
+        console.error("Simulation Error:", error);
+        alert("Something went wrong while running the simulation.");
+    } finally {
+        simLoading.style.display = "none";
+        simulateBtn.disabled = false;
+    }
+});
+
+// ═══ AI Smart Purchase Planner ═══
+function escapePurchaseHTML(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+async function generateSmartPurchasePlan() {
+    const button = document.getElementById("generatePurchasePlanBtn");
+    const loadingBox = document.getElementById("purchasePlanLoading");
+    const results = document.getElementById("purchasePlanResults");
+    const errorBox = document.getElementById("purchasePlanError");
+
+    errorBox.style.display = "none";
+    results.style.display = "none";
+    loadingBox.style.display = "block";
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
+
+    try {
+        const response = await fetch("/api/smart-purchase-plan", { method: "GET", headers: { "Accept": "application/json" } });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to generate purchase plan.");
+        }
+
+        const buy = data.buy_now || [], consider = data.consider_buying || [], avoid = data.do_not_buy || [];
+        const total = buy.length + consider.length + avoid.length;
+
+        loadingBox.style.display = "none";
+        results.style.display = "block";
+
+        // Counts
+        animateNum(document.getElementById("buyNowCount"), buy.length);
+        animateNum(document.getElementById("considerCount"), consider.length);
+        animateNum(document.getElementById("avoidCount"), avoid.length);
+        document.getElementById("buyNowTag").innerText = buy.length;
+        document.getElementById("considerTag").innerText = consider.length;
+        document.getElementById("avoidTag").innerText = avoid.length;
+
+        // Allocation bar
+        const pctOf = function (n) { return total ? (n / total * 100) : 0; };
+        requestAnimationFrame(function () {
+            document.getElementById("allocBuy").style.width = pctOf(buy.length) + "%";
+            document.getElementById("allocConsider").style.width = pctOf(consider.length) + "%";
+            document.getElementById("allocAvoid").style.width = pctOf(avoid.length) + "%";
+        });
+
+        // Money
+        const invest = Number(data.total_investment || 0);
+        const revenue = Number(data.expected_revenue || 0);
+        const profit = Number(data.expected_profit || 0);
+        animateNum(document.getElementById("purchaseInvestment"), invest, inrFmt);
+        animateNum(document.getElementById("purchaseRevenue"), revenue, inrFmt);
+        animateNum(document.getElementById("purchaseProfit"), profit, inrFmt);
+
+        const roi = document.getElementById("roiChip");
+        if (invest > 0) {
+            const r = profit / invest * 100;
+            roi.style.display = "inline-flex";
+            roi.className = "roi-chip" + (r < 0 ? " neg" : "");
+            roi.innerHTML = '<i class="ti ti-trending-' + (r < 0 ? "down" : "up") + '"></i> ' + r.toFixed(0) + '% ROI';
+        } else {
+            roi.style.display = "none";
+        }
+
+        // Lists
+        renderPurchaseList("buyNowList", buy, { cls: "is-buy", badge: "buy-badge", label: "Buy", icon: "⚠️", empty: "🟢 No products require urgent purchasing.", bar: "need-buy" });
+        renderPurchaseList("considerList", consider, { cls: "is-consider", badge: "consider-badge", label: "Consider", icon: "💡", empty: "🟢 No products currently need additional stock.", bar: "need-consider" });
+        renderPurchaseList("avoidList", avoid, { cls: "is-avoid", badge: "avoid-badge", label: "", icon: "🛑", empty: "No products in this category." });
+
+        document.getElementById("aiPurchaseSummary").innerText =
+            data.ai_summary || "No additional AI recommendation available.";
+
+        results.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    } catch (error) {
+        console.error("Smart Purchase Planner Error:", error);
+        loadingBox.style.display = "none";
+        results.style.display = "none";
+        errorBox.style.display = "block";
+        errorBox.innerText = error.message || "Something went wrong while generating the purchase plan.";
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="ti ti-sparkles"></i> Generate purchase plan';
+    }
+}
+
+function renderPurchaseList(containerId, items, cfg) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (!items.length) {
+        container.innerHTML = '<div class="purchase-empty">' + cfg.empty + '</div>';
+        return;
+    }
+
+    items.forEach(function (item, i) {
+        const hasQty = cfg.label && item.recommended_qty !== undefined && item.recommended_qty !== null;
+        const stock = Number(item.stock) || 0;
+        const need = Number(item.recommended_qty) || 0;
+        const havePct = hasQty && (stock + need) > 0 ? Math.round(stock / (stock + need) * 100) : 0;
+
+        const div = document.createElement("div");
+        div.className = "purchase-item " + cfg.cls;
+        div.style.animationDelay = (i * 70) + "ms";
+
+        div.innerHTML =
+            '<div class="d-flex justify-content-between align-items-start gap-2">' +
+                '<div>' +
+                    '<div class="purchase-item-name">' + escapePurchaseHTML(item.name) + '</div>' +
+                    '<div class="purchase-item-meta">Current stock: <strong>' + escapePurchaseHTML(item.stock) + '</strong>' +
+                    (item.sold_qty !== undefined ? ' &nbsp;|&nbsp; 30D sales: <strong>' + escapePurchaseHTML(item.sold_qty) + '</strong>' : '') +
+                    '</div>' +
+                '</div>' +
+                '<span class="purchase-qty-badge ' + cfg.badge + '">' +
+                    (hasQty ? cfg.label + ' ' + escapePurchaseHTML(item.recommended_qty) + ' units' : 'Do not buy') +
+                '</span>' +
+            '</div>' +
+            (hasQty && cfg.bar
+                ? '<div class="stock-track"><i class="have" data-w="' + havePct + '"></i><i class="' + cfg.bar + '" data-w="' + (100 - havePct) + '"></i></div>' +
+                  '<div class="stock-key">Grey: what you have &nbsp;|&nbsp; Colored: what to add</div>'
+                : '') +
+            '<div class="purchase-reason">' + cfg.icon + ' ' + escapePurchaseHTML(item.reason) + '</div>';
+
+        container.appendChild(div);
+
+        setTimeout(function () {
+            div.querySelectorAll(".stock-track i").forEach(function (b) { b.style.width = b.dataset.w + "%"; });
+        }, 120 + i * 70);
+    });
+}
+</script>
+
+</body>
+</html>

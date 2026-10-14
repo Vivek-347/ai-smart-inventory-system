@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Purchase OCR</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+
+<style>
+
+* { box-sizing: border-box; }
+
+.content { min-width: 0; max-width: 100%; }
+
+.page-header {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eef0f8;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.page-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1d2e;
+    margin: 0;
+}
+
+.page-header p {
+    font-size: 13px;
+    color: #8a8fa8;
+    margin: 2px 0 0;
+}
+
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #8a8fa8;
+    white-space: nowrap;
+}
+
+.breadcrumb-nav a {
+    color: #4f6ef7;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.breadcrumb-nav a:hover { text-decoration: underline; }
+
+/* ── OCR Layout ── */
+
+.ocr-grid {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+/* ── Left Info Panel ── */
+
+.info-panel {
+    background: linear-gradient(160deg, #1a1d2e 0%, #2a2f4a 100%);
+    border-radius: 16px;
+    padding: 28px 24px;
+    color: #fff;
+    position: sticky;
+    top: 28px;
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(79,110,247,0.2);
+    border: 1px solid rgba(79,110,247,0.35);
+    color: #a5b4fc;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    letter-spacing: 0.04em;
+}
+
+.ai-badge .dot {
+    width: 6px;
+    height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.info-panel h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.info-panel > p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin: 0 0 28px;
+    line-height: 1.6;
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+.feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.feature-icon i { font-size: 18px; }
+.feature-icon.blue  { background: rgba(79,110,247,0.2);  color: #818cf8; }
+.feature-icon.green { background: rgba(34,197,94,0.15);  color: #4ade80; }
+.feature-icon.amber { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+.feature-item h5 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 2px;
+}
+
+.feature-item p {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.45);
+    margin: 0;
+}
+
+/* ── Right Upload Panel ── */
+
+.upload-panel {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eef0f8;
+    padding: 32px;
+    min-width: 0;
+}
+
+.upload-panel-header {
+    margin-bottom: 24px;
+}
+
+.upload-panel-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1d2e;
+    margin: 0 0 4px;
+}
+
+.upload-panel-header p {
+    font-size: 13px;
+    color: #8a8fa8;
+    margin: 0;
+}
+
+.drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #d0d5f0;
+    border-radius: 14px;
+    padding: 48px 24px;
+    background: #fafbff;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: #4f6ef7;
+    background: #f0f3ff;
+}
+
+.drop-zone .upload-icon {
+    width: 64px;
+    height: 64px;
+    background: #eef0ff;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.drop-zone .upload-icon i {
+    font-size: 30px;
+    color: #4f6ef7;
+}
+
+.drop-zone h5 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1d2e;
+    margin: 0 0 6px;
+}
+
+.drop-zone p {
+    font-size: 12.5px;
+    color: #b0b4c8;
+    margin: 0 0 16px;
+}
+
+.file-types {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.file-type-badge {
+    background: #f0f2f7;
+    color: #5a5f7d;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.03em;
+}
+
+.btn-browse {
+    background: #4f6ef7;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 9px 22px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.btn-browse:hover {
+    background: #3d5ce5;
+    transform: translateY(-1px);
+}
+
+/* Preview */
+#previewArea {
+    display: none;
+    background: #f8f9fc;
+    border-radius: 10px;
+    border: 1px solid #eef0f8;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    align-items: center;
+    gap: 12px;
+}
+
+#previewArea i {
+    font-size: 28px;
+    color: #4f6ef7;
+    flex-shrink: 0;
+}
+
+#previewArea .file-info { flex: 1; min-width: 0; }
+#previewArea .file-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1d2e;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#previewArea .file-size {
+    font-size: 11.5px;
+    color: #b0b4c8;
+}
+
+/* Progress */
+.progress-section {
+    margin-bottom: 16px;
+    display: none;
+}
+
+.progress {
+    height: 6px;
+    background: #f0f2f7;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4f6ef7, #22c55e);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Loader */
+#loader {
+    display: none;
+    text-align: center;
+    padding: 24px;
+    background: #f8f9fc;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #eef0f8;
+}
+
+.scanner {
+    width: 100%;
+    height: 4px;
+    background: #eef0f8;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.scan-line {
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, #4f6ef7, transparent);
+    border-radius: 99px;
+    animation: scan 1.5s ease-in-out infinite;
+}
+
+@keyframes scan {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(300%); }
+}
+
+#loader h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1d2e;
+    margin: 0 0 4px;
+}
+
+#loader p {
+    font-size: 12.5px;
+    color: #8a8fa8;
+    margin: 0;
+}
+
+/* Submit button */
+.btn-ocr {
+    width: 100%;
+    background: linear-gradient(135deg, #4f6ef7, #7c5dfa);
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-ocr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,110,247,0.35);
+}
+
+.btn-ocr i { font-size: 20px; }
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+
+/* Small laptops */
+@media (max-width: 1199.98px) {
+    .ocr-grid { grid-template-columns: 280px minmax(0, 1fr); }
+    .upload-panel { padding: 24px; }
+}
+
+/* Tablets: stack, upload first, features in a row */
+@media (max-width: 991.98px) {
+    .ocr-grid { grid-template-columns: 1fr; }
+    .upload-panel { order: -1; }
+    .info-panel { position: static; padding: 24px; }
+    .info-panel > p { margin-bottom: 20px; }
+    .feature-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .feature-item { align-items: flex-start; }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+    .page-header { padding: 16px; margin-bottom: 16px; }
+    .page-header h2 { font-size: 16px; }
+    .page-header p  { font-size: 12px; }
+
+    .upload-panel { padding: 16px; border-radius: 14px; }
+    .upload-panel-header { margin-bottom: 16px; }
+
+    .drop-zone { padding: 32px 16px; }
+    .drop-zone .upload-icon { width: 54px; height: 54px; }
+    .btn-browse { width: 100%; justify-content: center; padding: 11px 22px; }
+
+    .info-panel { padding: 20px 16px; border-radius: 14px; }
+    .info-panel h3 { font-size: 18px; }
+    .feature-list { grid-template-columns: 1fr; }
+    .feature-item { align-items: center; }
+
+    #loader { padding: 18px 14px; }
+}
+
+/* Touch devices: no hover lift */
+@media (hover: none) {
+    .btn-browse:hover, .btn-ocr:hover { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ai-badge .dot, .scan-line { animation: none; }
+}
+
+</style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h2>AI Purchase OCR</h2>
+            <p>Upload supplier invoices and let AI extract product data automatically</p>
+        </div>
+        <div class="breadcrumb-nav">
+            <a href="/dashboard">Dashboard</a>
+            <i class="ti ti-chevron-right"></i>
+            <span>AI Purchase OCR</span>
+        </div>
+    </div>
+
+    <!-- OCR Grid -->
+    <div class="ocr-grid">
+
+        <!-- Left: Info Panel -->
+        <div class="info-panel">
+            <div class="ai-badge">
+                <span class="dot"></span> Gemini Vision Ready
+            </div>
+            <h3>Smart Invoice Scanner</h3>
+            <p>Upload any supplier bill and AI will automatically read products, quantities, and prices.</p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon blue">
+                        <i class="ti ti-file-text"></i>
+                    </div>
+                    <div>
+                        <h5>Invoice OCR</h5>
+                        <p>Reads PDF & Image invoices</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon green">
+                        <i class="ti ti-box"></i>
+                    </div>
+                    <div>
+                        <h5>Stock Update</h5>
+                        <p>Automatic inventory import</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon amber">
+                        <i class="ti ti-trending-up"></i>
+                    </div>
+                    <div>
+                        <h5>AI Analysis</h5>
+                        <p>Price comparison & suggestions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Upload Panel -->
+        <div class="upload-panel">
+
+            <div class="upload-panel-header">
+                <h4>Upload Purchase Bill</h4>
+                <p>Drag & drop your invoice or browse to select a file</p>
+            </div>
+
+            <form action="/uploadPurchaseBill" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+                <label class="drop-zone" id="dropZone">
+                    <input type="file" name="bill" id="billInput" hidden accept=".pdf,.png,.jpg,.jpeg">
+
+                    <div class="upload-icon">
+                        <i class="ti ti-cloud-upload"></i>
+                    </div>
+                    <h5>Drop your invoice here</h5>
+                    <p>or click to browse from your device</p>
+                    <div class="file-types">
+                        <span class="file-type-badge">PDF</span>
+                        <span class="file-type-badge">JPG</span>
+                        <span class="file-type-badge">PNG</span>
+                    </div>
+                    <button type="button" class="btn-browse" id="browseBtn">
+                        <i class="ti ti-folder-open"></i> Browse File
+                    </button>
+                </label>
+
+                <!-- File Preview -->
+                <div id="previewArea">
+                    <i class="ti ti-file-invoice"></i>
+                    <div class="file-info">
+                        <div class="file-name" id="fileName">invoice.pdf</div>
+                        <div class="file-size" id="fileSize">—</div>
+                    </div>
+                    <i class="ti ti-circle-check" style="color:#22c55e; font-size:22px;"></i>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-section" id="progressSection">
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <!-- Loader -->
+                <div id="loader">
+                    <div class="scanner">
+                        <div class="scan-line"></div>
+                    </div>
+                    <h4>🤖 AI Reading Invoice...</h4>
+                    <p>Extracting product details, prices and quantities...</p>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-ocr" id="uploadBtn">
+                    <i class="ti ti-scan"></i> Start AI OCR
+                </button>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/purchaseOCR.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purchase Center</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    margin: 0; background: #f0f2f7;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1a1d2e;
+    overflow-x: hidden;
+}
+
+/* Keep the main content from overflowing its container */
+.content { min-width: 0; max-width: 100%; }
+
+/* ── Topbar ── */
+.topbar {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 22px;
+    gap: 14px; flex-wrap: wrap;
+}
+
+.topbar h2 { font-size: 20px; font-weight: 700; color: #1a1d2e; margin: 0; }
+.topbar p  { font-size: 13px; color: #8a8fa8; margin: 2px 0 0; }
+
+.btn-upload {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, #4f6ef7, #7c5dfa);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 10px 22px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(79,110,247,0.3);
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-upload:hover {
+    color: #fff; transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,110,247,0.4);
+}
+
+.btn-upload i { font-size: 17px; }
+
+/* ── Stat Cards ── */
+.stats-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px; margin-bottom: 22px;
+}
+
+.stat-card {
+    background: #fff; border-radius: 14px; padding: 20px;
+    border: 1px solid #eef0f8; position: relative; overflow: hidden;
+    transition: transform 0.18s, box-shadow 0.18s; cursor: default;
+    min-width: 0;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.stat-card::before {
+    content: ''; position: absolute; bottom: 0; right: 0;
+    width: 90px; height: 90px;
+    border-radius: 90px 0 14px 0; opacity: 0.06;
+}
+
+.stat-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 14px 14px 0 0;
+}
+
+.stat-card.card1::before { background: #4f6ef7; }
+.stat-card.card2::before { background: #22c55e; }
+.stat-card.card3::before { background: #f59e0b; }
+.stat-card.card4::before { background: #ef4444; }
+
+.stat-card.card1::after { background: linear-gradient(90deg,#4f6ef7,#818cf8); }
+.stat-card.card2::after { background: linear-gradient(90deg,#16a34a,#22c55e); }
+.stat-card.card3::after { background: linear-gradient(90deg,#d97706,#f59e0b); }
+.stat-card.card4::after { background: linear-gradient(90deg,#dc2626,#ef4444); }
+
+.stat-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+}
+
+.stat-icon i { font-size: 20px; }
+.stat-icon.blue  { background: #eef0ff; color: #4f6ef7; }
+.stat-icon.green { background: #dcfce7; color: #16a34a; }
+.stat-icon.amber { background: #fef3c7; color: #d97706; }
+.stat-icon.red   { background: #fee2e2; color: #dc2626; }
+
+.stat-label { font-size: 11px; font-weight: 500; color: #8a8fa8; margin-bottom: 3px; }
+.stat-value {
+    font-size: 24px; font-weight: 800; color: #1a1d2e; line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+/* ── Tab Nav ── */
+.tab-nav {
+    display: flex; gap: 4px;
+    background: #fff; border-radius: 12px;
+    border: 1px solid #eef0f8; padding: 5px;
+    margin-bottom: 20px; width: fit-content; max-width: 100%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.tab-nav::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 18px; border-radius: 8px; border: none;
+    background: transparent; color: #8a8fa8;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.18s; font-family: 'Inter', sans-serif;
+    white-space: nowrap; flex-shrink: 0;
+}
+
+.tab-btn i { font-size: 16px; }
+.tab-btn:hover { color: #1a1d2e; background: #f5f6ff; }
+.tab-btn.active { background: linear-gradient(135deg,#4f6ef7,#7c5dfa); color: #fff; box-shadow: 0 3px 10px rgba(79,110,247,0.3); }
+
+/* ── Panel ── */
+.panel {
+    background: #fff; border-radius: 14px;
+    border: 1px solid #eef0f8; overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}
+
+.panel-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    padding: 15px 20px; border-bottom: 1px solid #f0f2f7;
+    background: linear-gradient(90deg, #fafbff, #fff);
+}
+
+.panel-title {
+    font-size: 14px; font-weight: 600; color: #1a1d2e;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.panel-title i { font-size: 18px; color: #4f6ef7; }
+
+/* ── Search ── */
+.search-wrap { position: relative; }
+
+.search-wrap i {
+    position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%); font-size: 15px;
+    color: #b0b4c8; pointer-events: none;
+}
+
+.search-input {
+    border: 1.5px solid #e8eaf2; border-radius: 8px;
+    padding: 7px 14px 7px 34px;
+    font-size: 12.5px; color: #1a1d2e;
+    background: #fafbfd; outline: none;
+    transition: all 0.15s; width: 210px; max-width: 100%;
+    font-family: 'Inter', sans-serif;
+}
+
+.search-input:focus {
+    border-color: #4f6ef7;
+    box-shadow: 0 0 0 3px rgba(79,110,247,0.08);
+}
+
+/* ── Tables ── */
+.table-wrap {
+    width: 100%; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+thead tr { background: #f8f9fc; }
+
+thead th {
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    color: #9ca3af; padding: 11px 16px;
+    text-align: left; border-bottom: 1px solid #f0f2f7;
+    white-space: nowrap;
+}
+
+tbody tr { border-bottom: 1px solid #f5f6fb; transition: background 0.12s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafbff; }
+
+tbody td {
+    font-size: 13px; color: #3d4166;
+    padding: 12px 16px; vertical-align: middle;
+}
+
+.invoice-no {
+    font-weight: 700; color: #4f6ef7;
+    font-family: monospace; font-size: 12.5px;
+    background: #eef0ff; padding: 2px 8px;
+    border-radius: 5px; white-space: nowrap;
+}
+
+.supplier-cell {
+    font-weight: 500; color: #1a1d2e;
+    display: flex; align-items: center; gap: 9px;
+}
+
+.sup-avatar {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #4f6ef7, #7c5dfa);
+    color: #fff; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(79,110,247,0.3);
+}
+
+.date-cell { font-size: 12px; color: #8a8fa8; white-space: nowrap; }
+.amount-cell { font-weight: 700; color: #1a1d2e; white-space: nowrap; }
+
+.badge-imported {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #dcfce7; color: #15803d;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    border: 1px solid #bbf7d0; white-space: nowrap;
+}
+
+.btn-view {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #eef0ff; color: #4f6ef7;
+    border: none; border-radius: 7px;
+    padding: 5px 12px; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'Inter', sans-serif; text-decoration: none;
+}
+
+.btn-view:hover { background: #4f6ef7; color: #fff; transform: translateY(-1px); }
+
+/* ── Analytics ── */
+.analytics-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px; margin-bottom: 16px;
+}
+
+.chart-panel {
+    background: #fff; border-radius: 14px;
+    border: 1px solid #eef0f8; overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    min-width: 0;
+}
+
+.chart-header {
+    padding: 14px 18px; border-bottom: 1px solid #f0f2f7;
+    font-size: 13.5px; font-weight: 600; color: #1a1d2e;
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(90deg, #fafbff, #fff);
+}
+
+.chart-header i { font-size: 17px; color: #4f6ef7; }
+.chart-body { padding: 16px 18px; }
+
+/* Fixed-height wrapper so Chart.js can resize freely */
+.chart-box { position: relative; width: 100%; height: 260px; }
+
+/* ── AI Panel ── */
+.ai-panel {
+    background: linear-gradient(135deg, #0d0f1a 0%, #1a1d2e 50%, #0f1628 100%);
+    border-radius: 14px; padding: 22px 26px;
+    border: 1px solid rgba(79,110,247,0.15);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    position: relative; overflow: hidden;
+}
+
+.ai-panel::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(79,110,247,0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ai-panel-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+}
+
+.ai-panel-icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(79,110,247,0.3), rgba(124,93,250,0.3));
+    border: 1px solid rgba(79,110,247,0.3);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.ai-panel-icon i { font-size: 20px; color: #818cf8; }
+.ai-panel-title { font-size: 14px; font-weight: 700; color: #fff; }
+.ai-panel-sub   { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+.ai-suggestions { display: flex; flex-direction: column; gap: 10px; }
+
+.ai-suggestion-item {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 12.5px; color: rgba(255,255,255,0.72);
+    transition: all 0.18s; cursor: default;
+}
+
+.ai-suggestion-item:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+    transform: translateX(3px);
+}
+
+.ai-item-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.ai-item-icon i { font-size: 17px; }
+.ai-item-icon.blue   { background: rgba(79,110,247,0.2);  color: #818cf8; }
+.ai-item-icon.green  { background: rgba(34,197,94,0.15);  color: #4ade80; }
+.ai-item-icon.amber  { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.ai-item-icon.red    { background: rgba(239,68,68,0.15);  color: #f87171; }
+
+/* ── Empty ── */
+.empty-state {
+    text-align: center; padding: 52px 20px; color: #b0b4c8;
+}
+
+.empty-state i { font-size: 46px; display: block; margin-bottom: 12px; color: #d0d4e8; }
+.empty-state p { font-size: 13px; }
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+
+/* Large tablets / small laptops */
+@media (max-width: 1199.98px) {
+    .stats-grid { gap: 14px; }
+    .stat-card  { padding: 16px; }
+    .stat-value { font-size: 21px; }
+}
+
+/* Tablets */
+@media (max-width: 991.98px) {
+    .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .analytics-grid { grid-template-columns: 1fr; }
+    .chart-box { height: 280px; }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+    .topbar h2 { font-size: 18px; }
+    .topbar p  { font-size: 12px; }
+    .topbar > a.btn-upload { width: 100%; }
+
+    .stats-grid { gap: 10px; margin-bottom: 18px; }
+    .stat-card  { padding: 14px; border-radius: 12px; }
+    .stat-card::before { width: 60px; height: 60px; }
+    .stat-icon  { width: 36px; height: 36px; margin-bottom: 10px; }
+    .stat-icon i { font-size: 18px; }
+    .stat-value { font-size: 18px; }
+
+    .tab-nav { width: 100%; margin-bottom: 16px; }
+    .tab-btn { padding: 8px 14px; }
+
+    .panel-toolbar { padding: 12px 14px; }
+    .panel-toolbar .search-wrap { width: 100%; }
+    .search-input { width: 100%; font-size: 14px; } /* 14px+ stops iOS zoom-on-focus */
+
+    thead th { padding: 10px 12px; }
+    tbody td { padding: 10px 12px; }
+
+    .chart-header { padding: 12px 14px; }
+    .chart-body   { padding: 12px 14px; }
+    .chart-box    { height: 230px; }
+
+    .ai-panel { padding: 16px; }
+    .ai-suggestion-item { padding: 10px 12px; align-items: flex-start; }
+    .ai-suggestion-item:hover { transform: none; }
+}
+
+/* Very small phones: stack the stat cards */
+@media (max-width: 359.98px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* Touch devices: no hover lift */
+@media (hover: none) {
+    .stat-card:hover, .btn-upload:hover, .btn-view:hover { transform: none; }
+}
+
+</style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <div>
+            <h2>Purchase Center 📦</h2>
+            <p>AI Powered Purchase Management System</p>
+        </div>
+        <a href="/purchaseOCR" class="btn-upload">
+            <i class="ti ti-scan"></i> Upload Purchase Bill
+        </a>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card card1">
+            <div class="stat-icon blue"><i class="ti ti-shopping-cart"></i></div>
+            <div class="stat-label">Today's Purchase</div>
+            <div class="stat-value">₹{{ "%.2f"|format(today_purchase or 0) }}</div>
+        </div>
+        <div class="stat-card card2">
+            <div class="stat-icon green"><i class="ti ti-building-store"></i></div>
+            <div class="stat-label">Suppliers</div>
+            <div class="stat-value">{{ total_suppliers }}</div>
+        </div>
+        <div class="stat-card card3">
+            <div class="stat-icon amber"><i class="ti ti-receipt"></i></div>
+            <div class="stat-label">Invoices</div>
+            <div class="stat-value">{{ total_invoices }}</div>
+        </div>
+        <div class="stat-card card4">
+            <div class="stat-icon red"><i class="ti ti-currency-rupee"></i></div>
+            <div class="stat-label">Purchase Value</div>
+            <div class="stat-value">₹{{ "%.2f"|format(total_purchase or 0) }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('overview', this)">
+            <i class="ti ti-layout-dashboard"></i> Overview
+        </button>
+        <button class="tab-btn" onclick="switchTab('suppliers', this)">
+            <i class="ti ti-building-store"></i> Suppliers
+        </button>
+        <button class="tab-btn" onclick="switchTab('history', this)">
+            <i class="ti ti-history"></i> Purchase History
+        </button>
+        <button class="tab-btn" onclick="switchTab('analytics', this)">
+            <i class="ti ti-chart-bar"></i> Analytics
+        </button>
+    </div>
+
+    <!-- Overview -->
+    <div class="tab-pane" id="tab-overview">
+        <div class="panel">
+            <div class="panel-toolbar">
+                <div class="panel-title"><i class="ti ti-clock"></i> Recent Purchases</div>
+            </div>
+            {% if recent_purchase %}
+            <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Invoice</th><th>Supplier</th><th>Date</th><th>Products</th><th>Amount</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in recent_purchase %}
+                    <tr>
+                        <td><span class="invoice-no">{{ row.invoice_number }}</span></td>
+                        <td>
+                            <div class="supplier-cell">
+                                <div class="sup-avatar">{{ row.supplier[0]|upper if row.supplier else '?' }}</div>
+                                {{ row.supplier }}
+                            </div>
+                        </td>
+                        <td class="date-cell">{{ row.invoice_date }}</td>
+                        <td>{{ row.total_products or 0 }}</td>
+                        <td class="amount-cell">₹{{ "%.2f"|format(row.total_amount or 0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><i class="ti ti-shopping-cart-off"></i><p>No recent purchases found.</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Suppliers -->
+    <div class="tab-pane" id="tab-suppliers" style="display:none;">
+        <div class="panel">
+            <div class="panel-toolbar">
+                <div class="panel-title"><i class="ti ti-building-store"></i> Supplier List</div>
+                <div class="search-wrap">
+                    <i class="ti ti-search"></i>
+                    <input type="text" class="search-input" placeholder="Search supplier..."
+                        oninput="filterTable(this, 'supplier-table')">
+                </div>
+            </div>
+            {% if suppliers %}
+            <div class="table-wrap">
+            <table id="supplier-table" style="min-width:680px;">
+                <thead>
+                    <tr><th>Supplier</th><th>Invoices</th><th>Products</th><th>Purchase Value</th><th>Last Purchase</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr>
+                        <td>
+                            <div class="supplier-cell">
+                                <div class="sup-avatar">{{ supplier.supplier_name[0]|upper if supplier.supplier_name else '?' }}</div>
+                                {{ supplier.supplier_name }}
+                            </div>
+                        </td>
+                        <td>{{ supplier.total_invoice or 0 }}</td>
+                        <td>{{ supplier.total_products or 0 }}</td>
+                        <td class="amount-cell">₹{{ "%.2f"|format(supplier.purchase_value or 0) }}</td>
+                        <td class="date-cell">{{ supplier.last_purchase or '—' }}</td>
+                        <td><a href="/supplierDetails/{{ supplier.supplier_id }}" class="btn-view"><i class="ti ti-eye" style="font-size:13px;"></i> View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><i class="ti ti-building-off"></i><p>No suppliers found.</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Purchase History -->
+    <div class="tab-pane" id="tab-history" style="display:none;">
+        <div class="panel">
+            <div class="panel-toolbar">
+                <div class="panel-title"><i class="ti ti-history"></i> Purchase History</div>
+                <div class="search-wrap">
+                    <i class="ti ti-search"></i>
+                    <input type="text" class="search-input" placeholder="Search purchase..."
+                        oninput="filterTable(this, 'history-table')">
+                </div>
+            </div>
+            {% if purchase_history %}
+            <div class="table-wrap">
+            <table id="history-table" style="min-width:720px;">
+                <thead>
+                    <tr><th>Invoice</th><th>Supplier</th><th>Date</th><th>Products</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for purchase in purchase_history %}
+                    <tr>
+                        <td><span class="invoice-no">{{ purchase.invoice_number }}</span></td>
+                        <td>
+                            <div class="supplier-cell">
+                                <div class="sup-avatar">{{ purchase.supplier[0]|upper if purchase.supplier else '?' }}</div>
+                                {{ purchase.supplier }}
+                            </div>
+                        </td>
+                        <td class="date-cell">{{ purchase.invoice_date }}</td>
+                        <td>{{ purchase.total_products or 0 }}</td>
+                        <td class="amount-cell">₹{{ "%.2f"|format(purchase.total_amount or 0) }}</td>
+                        <td>
+                            <span class="badge-imported">
+                                <i class="ti ti-circle-check" style="font-size:12px;"></i>
+                                {{ purchase.purchase_status or 'Imported' }}
+                            </span>
+                        </td>
+                        <td><a href="/supplierDetailsByName/{{ purchase.supplier | urlencode }}" class="btn-view"><i class="ti ti-eye" style="font-size:13px;"></i> View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><i class="ti ti-receipt-off"></i><p>No purchase history found.</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="tab-pane" id="tab-analytics" style="display:none;">
+        <div class="analytics-grid">
+            <div class="chart-panel">
+                <div class="chart-header"><i class="ti ti-chart-pie"></i> Top Suppliers</div>
+                <div class="chart-body"><div class="chart-box"><canvas id="supplierChart"></canvas></div></div>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-header"><i class="ti ti-trending-up"></i> Purchase Trend</div>
+                <div class="chart-body"><div class="chart-box"><canvas id="purchaseChart"></canvas></div></div>
+            </div>
+        </div>
+
+        <div class="ai-panel">
+            <div class="ai-panel-header">
+                <div class="ai-panel-icon"><i class="ti ti-robot"></i></div>
+                <div>
+                    <div class="ai-panel-title">AI Purchase Suggestions</div>
+                    <div class="ai-panel-sub">Smart recommendations based on your purchase data</div>
+                </div>
+            </div>
+            <div class="ai-suggestions">
+                <div class="ai-suggestion-item">
+                    <div class="ai-item-icon amber"><i class="ti ti-alert-triangle"></i></div>
+                    Purchase cost increased for some products — consider renegotiating with suppliers.
+                </div>
+                <div class="ai-suggestion-item">
+                    <div class="ai-item-icon green"><i class="ti ti-star"></i></div>
+                    Top supplier provides best pricing — prioritize bulk orders with them.
+                </div>
+                <div class="ai-suggestion-item">
+                    <div class="ai-item-icon blue"><i class="ti ti-package"></i></div>
+                    Consider bulk purchase for frequently ordered products to reduce per-unit cost.
+                </div>
+                <div class="ai-suggestion-item">
+                    <div class="ai-item-icon red"><i class="ti ti-clock"></i></div>
+                    Low purchase activity detected this week — check stock levels.
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+function switchTab(id, btn) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).style.display = 'block';
+    btn.classList.add('active');
+    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
+    // Charts created while hidden need a resize once visible
+    if (id === 'analytics') {
+        Object.values(Chart.instances).forEach(c => c.resize());
+    }
+}
+
+function filterTable(input, tableId) {
+    const val = input.value.toLowerCase();
+    document.querySelectorAll('#' + tableId + ' tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(val) ? '' : 'none';
+    });
+}
+
+const supplierCanvas = document.getElementById('supplierChart');
+if (supplierCanvas) {
+    new Chart(supplierCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: ['Supplier A','Supplier B','Supplier C','Others'],
+            datasets: [{
+                data: [40,25,20,15],
+                backgroundColor: ['#4f6ef7','#22c55e','#f59e0b','#e5e7f0'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 14, boxWidth: 12 } } },
+            cutout: '65%'
+        }
+    });
+}
+
+const purchaseCanvas = document.getElementById('purchaseChart');
+if (purchaseCanvas) {
+    new Chart(purchaseCanvas, {
+        type: 'line',
+        data: {
+            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+            datasets: [{
+                label: 'Purchase (₹)',
+                data: [12000,19000,8000,24000,15000,21000,9000],
+                borderColor: '#4f6ef7',
+                backgroundColor: 'rgba(79,110,247,0.08)',
+                borderWidth: 2,
+                pointBackgroundColor: '#4f6ef7',
+                pointRadius: 4,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: { grid: { color: '#f0f2f7' }, ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+}
+
+</script>
+</body>
+</html>

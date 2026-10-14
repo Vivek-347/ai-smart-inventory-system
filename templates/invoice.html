@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax Invoice</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef0f3;color:#172033;font-family:Arial,Helvetica,sans-serif;font-size:12px}.toolbar{max-width:650px;margin:24px auto 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}.btn{display:inline-block;text-decoration:none;border:0;border-radius:6px;padding:8px 13px;font-weight:700;font-size:11px;cursor:pointer;color:#fff;background:#3867e8}.btn.dark{background:#151a2d}.invoice{max-width:650px;margin:0 auto 24px;background:#fff;box-shadow:0 8px 28px #16213b12;border-radius:5px;overflow:hidden}.top{padding:28px 36px 22px;display:flex;justify-content:space-between;gap:22px;border-bottom:1px solid #e3e7ed}.business h2{font-size:18px;margin:0 0 8px;font-weight:800;color:#111827}.muted{color:#718096;font-size:10px;line-height:1.7}.title{text-align:right;min-width:175px}.title h1{font-size:27px;letter-spacing:1px;margin:0 0 8px;color:#111827}.title div{font-size:10px;color:#718096;margin:4px 0}.title b{color:#1f2937}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:17px 36px;background:#f7f8fa;border-bottom:1px solid #e6e9ee}.meta .cap{font-size:9px;color:#8a94a6;letter-spacing:.8px;font-weight:700;margin-bottom:5px}.meta .val{font-size:11px;font-weight:700}.parties{padding:18px 36px;display:grid;grid-template-columns:1fr 1fr;gap:22px;border-bottom:1px solid #e6e9ee}.party+.party{border-left:1px solid #e1e5eb;padding-left:22px}.cap{font-size:9px;color:#8a94a6;letter-spacing:.8px;font-weight:700;margin-bottom:8px}.party strong{font-size:12px;display:block;margin-bottom:6px}.party div:not(.cap){font-size:10px;line-height:1.8;color:#64748b;overflow-wrap:anywhere}.items{padding:17px 36px 8px}table{width:100%;border-collapse:collapse}th{text-align:left;font-size:9px;letter-spacing:.5px;color:#7a8495;padding:9px 7px;border-bottom:1px solid #20283a;text-transform:uppercase}td{padding:12px 7px;border-bottom:1px solid #e1e5eb;font-size:11px}th:first-child,td:first-child{padding-left:8px;width:30px}th:nth-child(3),td:nth-child(3){text-align:center}th:nth-child(n+4),td:nth-child(n+4){text-align:right}.totals{width:245px;margin:8px 36px 18px auto}.row{display:flex;justify-content:space-between;gap:15px;padding:5px 0;border-bottom:1px dotted #e5e7eb;color:#718096;font-size:11px}.row strong{color:#172033;font-weight:700}.row.discount strong{color:#dc2626}.row.grand{border-top:2px solid #20283a;border-bottom:0;margin-top:5px;padding-top:11px;font-size:12px;font-weight:800;color:#111827}.row.grand strong{font-size:18px}.footer{border-top:1px solid #e6e9ee;padding:16px 36px;display:flex;justify-content:space-between;gap:18px;align-items:flex-end}.footer strong{display:block;font-size:11px;margin-bottom:4px}.signature{text-align:right;color:#718096;font-size:9px;min-width:200px}.signature .line{border-top:1px solid #aab2bf;margin:0 0 7px auto;width:145px}.signature b{font-size:10px;color:#253047}.bottom{padding:10px 36px;background:#f7f8fa;border-top:1px solid #e6e9ee;display:flex;justify-content:space-between;color:#94a0b1;font-size:9px}.bottom strong{color:#64748b}@media(max-width:680px){.toolbar,.invoice{margin-left:10px;margin-right:10px}.top,.meta,.parties,.items,.footer{padding-left:16px;padding-right:16px}.totals{margin-right:16px}.title h1{font-size:21px}.business h2{font-size:15px}.top{gap:10px}.meta{gap:7px}.parties{gap:12px}.party+.party{padding-left:12px}.signature{min-width:130px}}@media print{body{background:#fff}.toolbar{display:none}.invoice{margin:0 auto;box-shadow:none;max-width:none}.bottom{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="toolbar"><a class="btn" href="/salesHistory">← Back to Sales</a><div><button class="btn" onclick="window.print()">↓ Download / Print PDF</button> <button class="btn dark" onclick="window.print()">Print Invoice</button></div></div>
+<main class="invoice">
+  <header class="top">
+    <div class="business"><h2>{{ business_name or 'BUSINESS NAME' }}</h2>
+      <div class="muted">{{ address or '' }}{% if city %}, {{ city }}{% endif %}{% if state %}, {{ state }}{% endif %}{% if pincode %} – {{ pincode }}{% endif %}<br>
+      {% if gst_number %}GSTIN: {{ gst_number }}<br>{% endif %}{% if phone %}Phone: {{ phone }}{% endif %}</div>
+    </div>
+    <div class="title"><h1>TAX INVOICE</h1><div>Invoice No: <b>{{ invoice_prefix or '' }}{{ bill_id }}</b></div><div>Date: <b>{{ date }}</b></div></div>
+  </header>
+  <section class="meta">
+    <div><div class="cap">INVOICE NO</div><div class="val">{{ invoice_prefix or '' }}{{ bill_id }}</div></div>
+    <div><div class="cap">DATE</div><div class="val">{{ date }}</div></div>
+    <div><div class="cap">PAYMENT METHOD</div><div class="val">{{ payment_method }}</div></div>
+    <div><div class="cap">STATUS</div><div class="val" style="color:#16a34a">Paid</div></div>
+  </section>
+  <section class="parties">
+    <div class="party"><div class="cap">BILL TO</div><strong>{{ customer_name }}</strong>
+      {% if customer_phone %}<div>Phone: {{ customer_phone }}</div>{% endif %}{% if customer_address %}<div>Address: {{ customer_address }}</div>{% endif %}{% if customer_gst %}<div>GSTIN: {{ customer_gst }}</div>{% endif %}
+    </div>
+    <div class="party"><div class="cap">BILL FROM</div><strong>{{ business_name or 'BUSINESS NAME' }}</strong>
+      {% if phone %}<div>Phone: {{ phone }}</div>{% endif %}{% if gst_number %}<div>GSTIN: {{ gst_number }}</div>{% endif %}<div>Address: {{ address or '' }}{% if city %}, {{ city }}{% endif %}{% if state %}, {{ state }}{% endif %}{% if pincode %} – {{ pincode }}{% endif %}</div>
+    </div>
+  </section>
+  <section class="items"><table><thead><tr><th>#</th><th>Product / Description</th><th>Qty</th><th>Rate</th><th>GST</th><th>Amount</th></tr></thead><tbody>
+  {% for item in invoice_items %}<tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>₹{{ '%.2f'|format(item.price) }}</td><td>{{ '%.2f'|format(gst_percentage) }}%</td><td>₹{{ '%.2f'|format(item.total) }}</td></tr>{% endfor %}
+  </tbody></table></section>
+  <section class="totals">
+    <div class="row"><span>Subtotal</span><strong>₹{{ '%.2f'|format(subtotal) }}</strong></div>
+    {% if discount %}<div class="row discount"><span>Discount</span><strong>− ₹{{ '%.2f'|format(discount) }}</strong></div>{% endif %}
+    <div class="row"><span>CGST ({{ '%.2f'|format(gst_half_percentage if gst_half_percentage is defined else gst_percentage/2) }}%)</span><strong>₹{{ '%.2f'|format(cgst) }}</strong></div>
+    <div class="row"><span>SGST ({{ '%.2f'|format(gst_half_percentage if gst_half_percentage is defined else gst_percentage/2) }}%)</span><strong>₹{{ '%.2f'|format(sgst) }}</strong></div>
+    <div class="row grand"><span>Grand Total</span><strong>₹{{ '%.2f'|format(grand_total) }}</strong></div>
+  </section>
+  <footer class="footer"><div><strong>Thank You For Your Business</strong><div class="muted">Goods once sold will not be taken back or exchanged.<br>This is a computer-generated invoice.</div></div><div class="signature"><div class="line"></div>Authorized Signatory<br><b>{{ business_name or 'BUSINESS NAME' }}</b></div></footer>
+  <div class="bottom"><span>Generated by AI Inventory · Smart Business Suite</span><span>Invoice {{ invoice_prefix or '' }}{{ bill_id }} · {{ date }}</span></div>
+</main>
+</body></html>

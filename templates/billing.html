@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing System</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* { box-sizing: border-box; }
+
+:root {
+    --brand: #4f6ef7; --brand2: #7c5dfa;
+    --ink: #1a1d2e; --muted: #8a8fa8; --line: #eef0f8;
+    --soft: #f8f9fc; --green: #22c55e; --red: #ef4444;
+    --amber: #f59e0b; --cyan: #06b6d4;
+}
+
+body {
+    background: #f0f2f7;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink); min-height: 100vh; margin: 0;
+}
+
+/* ══ HEADER ══ */
+.page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px; gap: 12px; flex-wrap: wrap;
+}
+
+.page-title {
+    font-size: 20px; font-weight: 800; margin: 0;
+    display: flex; align-items: center; gap: 10px;
+}
+
+.page-sub { font-size: 12.5px; color: var(--muted); margin: 3px 0 0; }
+
+.logo-chip {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    color: #fff; font-size: 20px;
+    box-shadow: 0 6px 16px rgba(79,110,247,.38);
+    animation: floaty 3.5s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes floaty { 50% { transform: translateY(-3px) rotate(-4deg); } }
+
+.breadcrumb-nav { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.breadcrumb-nav a { color: var(--brand); text-decoration: none; font-weight: 600; }
+.breadcrumb-nav a:hover { text-decoration: underline; }
+
+/* ══ LAYOUT ══ */
+.billing-grid { display: grid; grid-template-columns: 1fr 348px; gap: 20px; align-items: start; }
+.billing-grid > div { min-width: 0; }
+
+/* ══ PANEL ══ */
+.panel {
+    position: relative; background: #fff;
+    border-radius: 16px; border: 1px solid var(--line);
+    overflow: hidden; margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+}
+
+.panel:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+.panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--brand), var(--brand2), var(--cyan));
+}
+
+.panel-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid #f0f2f7;
+    display: flex; align-items: center; gap: 11px;
+    background: linear-gradient(90deg, #fafbff, #fff);
+}
+
+.panel-header-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.panel-header-icon i { font-size: 18px; }
+.panel-header-icon.blue  { background: #eef0ff; color: var(--brand); }
+.panel-header-icon.green { background: #dcfce7; color: #16a34a; }
+.panel-header-icon.amber { background: #fef3c7; color: #d97706; }
+
+.panel-header h5 { font-size: 14px; font-weight: 700; margin: 0 0 1px; }
+.panel-header p  { font-size: 11px; color: var(--muted); margin: 0; }
+
+.panel-header .count-chip {
+    margin-left: auto; font-size: 10.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    background: #eef0ff; color: var(--brand);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+.panel-body { padding: 20px 22px; }
+
+/* ══ FORMS ══ */
+.form-label { font-size: 12px; font-weight: 600; color: #3d4166; margin-bottom: 5px; display: block; }
+
+.input-icon { position: relative; }
+.input-icon > i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #b3b7c9; font-size: 16px; pointer-events: none; transition: color .15s; }
+.input-icon:focus-within > i { color: var(--brand); }
+.input-icon .form-control, .input-icon .form-select { padding-left: 38px; }
+
+.form-control, .form-select {
+    border: 1.5px solid #e8eaf2; border-radius: 10px;
+    padding: 10px 13px; font-size: 13px; color: var(--ink);
+    background-color: #fafbfd; transition: all .2s;
+    box-shadow: none !important; width: 100%; font-family: inherit;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand); background-color: #fff; outline: none;
+    box-shadow: 0 0 0 3px rgba(79,110,247,.12) !important;
+}
+
+.form-control::placeholder { color: #c0c4d8; }
+.form-control[readonly] { background: #f0f2f7; color: #5a5f7d; cursor: default; font-weight: 600; font-variant-numeric: tabular-nums; }
+textarea.form-control { resize: none; padding-top: 10px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+.optional { color: #b0b4c8; font-weight: 400; }
+
+/* Discount chips */
+.quick-chips { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.q-chip {
+    padding: 3px 10px; border-radius: 7px; font-size: 11px; font-weight: 600;
+    border: 1.5px solid #e8eaf2; background: #fff; color: #5a5f7d;
+    cursor: pointer; transition: .15s; font-family: inherit;
+}
+.q-chip:hover { border-color: var(--brand); color: var(--brand); background: #f0f3ff; }
+
+/* ══ PRODUCT TABLE ══ */
+.product-table-wrap { overflow-x: auto; }
+
+table#productTable { width: 100%; border-collapse: collapse; min-width: 620px; }
+table#productTable thead tr { background: #f8f9fc; }
+table#productTable thead th {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #9ca3af;
+    padding: 11px 14px; border-bottom: 1px solid #f0f2f7; white-space: nowrap;
+}
+table#productTable tbody tr { border-bottom: 1px solid #f5f6fb; transition: background .15s; }
+table#productTable tbody tr:hover { background: #fafbff; }
+table#productTable tbody tr:last-child { border-bottom: none; }
+table#productTable tbody td { padding: 10px 14px; vertical-align: top; }
+
+tr.row-new  { animation: rowIn .4s cubic-bezier(.2,.8,.2,1); }
+tr.row-gone { animation: rowOut .25s ease forwards; }
+@keyframes rowIn  { from { opacity:0; transform:translateY(-8px); background:#eef0ff; } to { opacity:1; transform:none; } }
+@keyframes rowOut { to   { opacity:0; transform:translateX(20px); } }
+
+/* Qty stepper */
+.qty-wrap { display: flex; align-items: stretch; gap: 4px; }
+.qty-wrap .qty-input { text-align: center; font-weight: 700; padding: 10px 4px; min-width: 48px; }
+.qty-btn {
+    width: 32px; border: 1.5px solid #e8eaf2; border-radius: 8px;
+    background: #fff; color: #5a5f7d; font-size: 16px;
+    cursor: pointer; transition: .15s; flex-shrink: 0; padding: 0;
+}
+.qty-btn:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+.stock-hint { font-size: 10.5px; margin-top: 4px; color: var(--muted); }
+.stock-hint.warn { color: #dc2626; font-weight: 700; }
+.stock-hint.low  { color: #b45309; font-weight: 600; }
+.qty-input.over  { border-color: #ef4444; background: #fef2f2; }
+
+.btn-add-row {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #eef0ff; color: var(--brand); border: none; border-radius: 9px;
+    padding: 8px 16px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.btn-add-row:hover { background: var(--brand); color: #fff; transform: translateY(-1px); }
+
+.btn-remove-row {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fee2e2; color: #dc2626; border: none; border-radius: 8px;
+    width: 34px; height: 40px; font-size: 15px; cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.btn-remove-row:hover { background: #dc2626; color: #fff; }
+
+.table-footer-row {
+    padding: 13px 20px; border-top: 1px solid #f0f2f7;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    background: linear-gradient(90deg, #fafbff, #fff);
+}
+.footer-note { font-size: 12px; color: var(--muted); }
+
+/* ══ SUMMARY PANEL ══ */
+.summary-panel {
+    background: #fff; border-radius: 16px; border: 1px solid var(--line);
+    overflow: hidden; position: sticky; top: 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.summary-panel::before {
+    content: ''; display: block; height: 3px;
+    background: linear-gradient(90deg, var(--brand), var(--brand2));
+}
+
+.summary-panel .panel-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid #f0f2f7;
+    background: linear-gradient(90deg, #fafbff, #fff);
+}
+
+/* Billing to card */
+.billing-to {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 20px;
+    background: linear-gradient(135deg, #f4f6ff, #f7f2ff);
+    border-bottom: 1px solid #e3e6ff;
+}
+
+.bt-avatar {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; flex-shrink: 0;
+    transition: transform .2s;
+}
+
+.bt-avatar.pop { animation: pop .3s ease; }
+@keyframes pop { 50% { transform: scale(1.18); } }
+.bt-name { font-size: 13px; font-weight: 700; }
+.bt-sub  { font-size: 11px; color: var(--muted); }
+
+/* Payment */
+.pay-label { padding: 13px 20px 7px; font-size: 11.5px; font-weight: 700; color: #3d4166; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.payment-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; padding: 0 20px 14px; border-bottom: 1px solid #f0f2f7;
+}
+
+.payment-opt {
+    border: 2px solid var(--line); border-radius: 10px;
+    padding: 9px 11px; display: flex; align-items: center; gap: 8px;
+    cursor: pointer; transition: all .15s;
+    font-size: 12.5px; font-weight: 500; color: #5a5f7d;
+    position: relative; margin: 0;
+}
+.payment-opt:hover { border-color: #c7d2ff; background: #f8f9ff; }
+.payment-opt.selected {
+    border-color: var(--brand); background: #f0f3ff; color: var(--brand);
+    font-weight: 700; box-shadow: 0 4px 12px rgba(79,110,247,.15);
+}
+.payment-opt.selected::after {
+    content: '\eb55'; font-family: 'tabler-icons';
+    position: absolute; top: -7px; right: -7px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--brand); color: #fff; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    animation: pop .3s ease;
+}
+.payment-opt i   { font-size: 17px; }
+.payment-opt input { display: none; }
+
+/* GST row input */
+.gst-input-row { display: flex; align-items: center; gap: 10px; padding: 10px 20px; border-bottom: 1px solid #f5f6fb; }
+.gst-input-row label { font-size: 12.5px; color: var(--muted); flex: 1; margin: 0; }
+.gst-input-row input { max-width: 90px; text-align: right; padding: 7px 10px; font-size: 13px; font-weight: 600; }
+
+/* Summary rows */
+.summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 20px; border-bottom: 1px solid #f5f6fb; font-size: 12.5px;
+}
+.summary-row .label { color: var(--muted); }
+.summary-row .label small { display: block; font-size: 10.5px; color: #b0b4c8; }
+.summary-row .val { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Total block */
+.summary-total {
+    position: relative; overflow: hidden;
+    margin: 14px; border-radius: 14px; padding: 16px 18px;
+    color: #fff;
+    background: linear-gradient(135deg, #0d0f1c, #1c2060 60%, #2e1f6a);
+}
+.summary-total::after {
+    content: ''; position: absolute;
+    width: 160px; height: 160px; right: -40px; top: -70px;
+    border-radius: 50%; background: rgba(124,93,250,.55);
+    filter: blur(40px);
+    animation: drift 8s ease-in-out infinite alternate;
+}
+@keyframes drift { to { transform: translate(-40px, 24px); } }
+.summary-total > * { position: relative; z-index: 1; }
+.st-label { font-size: 11.5px; color: #c1c8e4; }
+.st-val   { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 2px; }
+.st-save  { display: none; margin-top: 8px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: rgba(34,197,94,.2); color: #86efac; width: fit-content; }
+
+/* Generate button */
+.btn-generate {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: calc(100% - 28px); margin: 0 14px 14px;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    color: #fff; border: none; border-radius: 12px;
+    padding: 13px; font-size: 14.5px; font-weight: 700;
+    cursor: pointer; transition: all .2s; font-family: inherit;
+    box-shadow: 0 6px 18px rgba(79,110,247,.38);
+    position: relative; overflow: hidden;
+}
+.btn-generate::after {
+    content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+    transform: skewX(-20deg); transition: left .55s;
+}
+.btn-generate:hover::after { left: 130%; }
+.btn-generate:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(79,110,247,.5); }
+.btn-generate:disabled { opacity: .75; cursor: wait; transform: none; }
+.btn-generate i { font-size: 19px; }
+
+@media (max-width: 1100px) { .billing-grid { grid-template-columns: 1fr; } .summary-panel { position: static; } }
+@media (max-width: 800px) { .content { margin-left: 0 !important; } .two-col { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+</style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-title">
+                <span class="logo-chip"><i class="ti ti-receipt"></i></span>
+                Generate Bill
+            </div>
+            <div class="page-sub">Create a new tax invoice for a customer</div>
+        </div>
+        <div class="breadcrumb-nav">
+            <a href="/dashboard">Dashboard</a>
+            <i class="ti ti-chevron-right"></i>
+            <span>Sales Entry</span>
+        </div>
+    </div>
+
+    <form action="/generateBill" method="POST" id="billingForm">
+    <div class="billing-grid">
+
+        <!-- LEFT COLUMN -->
+        <div>
+
+            <!-- Customer Details -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-header-icon blue"><i class="ti ti-user"></i></div>
+                    <div>
+                        <h5>Customer Details</h5>
+                        <p>Billing information for this invoice</p>
+                    </div>
+                </div>
+                <div class="panel-body">
+
+                    <div class="two-col">
+                        <div class="form-group">
+                            <label class="form-label">Customer Name</label>
+                            <div class="input-icon">
+                                <i class="ti ti-user"></i>
+                                <input type="text" class="form-control" name="customer_name" id="customerName" placeholder="Enter Customer Name" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mobile Number</label>
+                            <div class="input-icon">
+                                <i class="ti ti-phone"></i>
+                                <input type="text" class="form-control" name="customer_phone" id="customerPhone" placeholder="Enter Customer Phone Number" inputmode="tel" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="two-col">
+                        <div class="form-group">
+                            <label class="form-label">GST Number <span class="optional">(Optional)</span></label>
+                            <div class="input-icon">
+                                <i class="ti ti-receipt-tax"></i>
+                                <input type="text" class="form-control" name="customer_gst" placeholder="Enter GST Number">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Discount (₹)</label>
+                            <div class="input-icon">
+                                <i class="ti ti-discount-2"></i>
+                                <input type="number" class="form-control" name="discount" value="0" min="0" id="discountInput" oninput="updateSummary()">
+                            </div>
+                            <div class="quick-chips">
+                                <button type="button" class="q-chip" onclick="applyPercentDiscount(5)">5%</button>
+                                <button type="button" class="q-chip" onclick="applyPercentDiscount(10)">10%</button>
+                                <button type="button" class="q-chip" onclick="applyPercentDiscount(15)">15%</button>
+                                <button type="button" class="q-chip" onclick="applyPercentDiscount(0)">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Customer Address</label>
+                        <textarea class="form-control" name="customer_address" rows="2" placeholder="Street, City, State..."></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Product Details -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-header-icon green"><i class="ti ti-package"></i></div>
+                    <div>
+                        <h5>Product Details</h5>
+                        <p>Add one or more products to this bill</p>
+                    </div>
+                    <span class="count-chip" id="itemCountChip">1 item</span>
+                </div>
+
+                <div class="product-table-wrap">
+                    <table id="productTable">
+                        <thead>
+                            <tr>
+                                <th style="width:42%">Product</th>
+                                <th style="width:18%">Qty</th>
+                                <th style="width:17%">Unit Price</th>
+                                <th style="width:17%">Subtotal</th>
+                                <th style="width:6%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <select name="product_id[]" class="form-select product-select" onchange="updateRow(this)">
+                                        {% for p in products %}
+                                        <option value="{{ p[0] }}" data-price="{{ p[4] }}" data-stock="{{ p[5] }}" {% if p[5] == 0 %}disabled{% endif %}>
+                                            {{ p[1] }} — ₹{{ p[4] }} (Stock: {{ p[5] }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="qty-wrap">
+                                        <button type="button" class="qty-btn" onclick="stepQty(this, -1)">−</button>
+                                        <input type="number" name="quantity[]" class="form-control qty-input" value="1" min="1" oninput="updateRow(this)">
+                                        <button type="button" class="qty-btn" onclick="stepQty(this, 1)">+</button>
+                                    </div>
+                                    <div class="stock-hint"></div>
+                                </td>
+                                <td><input type="text" class="form-control price-display" readonly value="Auto"></td>
+                                <td><input type="text" class="form-control subtotal-display" readonly value="—"></td>
+                                <td>
+                                    <button type="button" class="btn-remove-row" onclick="removeProductRow(this)">
+                                        <i class="ti ti-trash" style="font-size:14px;"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer-row">
+                    <button type="button" class="btn-add-row" onclick="addProductRow()">
+                        <i class="ti ti-plus" style="font-size:15px;"></i> Add product row
+                    </button>
+                    <span class="footer-note" id="footerNote"></span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Summary -->
+        <div>
+            <div class="summary-panel">
+
+                <div class="panel-header">
+                    <div class="panel-header-icon amber"><i class="ti ti-receipt"></i></div>
+                    <div>
+                        <h5>Invoice Summary</h5>
+                        <p>Live bill breakdown</p>
+                    </div>
+                </div>
+
+                <!-- Billing To -->
+                <div class="billing-to">
+                    <div class="bt-avatar" id="btAvatar"><i class="ti ti-user"></i></div>
+                    <div>
+                        <div class="bt-name" id="btName">Walk-in customer</div>
+                        <div class="bt-sub" id="btSub">Enter customer details</div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="pay-label">Payment Method</div>
+                <div class="payment-grid">
+                    <label class="payment-opt selected" onclick="selectPayment(this, 'Cash')">
+                        <input type="radio" name="payment_method" value="Cash" checked>
+                        <i class="ti ti-cash"></i> Cash
+                    </label>
+                    <label class="payment-opt" onclick="selectPayment(this, 'UPI')">
+                        <input type="radio" name="payment_method" value="UPI">
+                        <i class="ti ti-qrcode"></i> UPI
+                    </label>
+                    <label class="payment-opt" onclick="selectPayment(this, 'Card')">
+                        <input type="radio" name="payment_method" value="Card">
+                        <i class="ti ti-credit-card"></i> Card
+                    </label>
+                    <label class="payment-opt" onclick="selectPayment(this, 'Credit')">
+                        <input type="radio" name="payment_method" value="Credit">
+                        <i class="ti ti-clock-dollar"></i> Credit
+                    </label>
+                </div>
+
+                <!-- GST Rate -->
+                <div class="gst-input-row">
+                    <label for="gstPercentage">GST Rate (%)</label>
+                    <input type="number" name="gst_percentage" id="gstPercentage"
+                        class="form-control" value="{{ gst_rate|default(18) }}"
+                        min="0" max="100" step="0.01" oninput="updateSummary()" aria-label="GST percentage">
+                </div>
+
+                <!-- Summary Rows -->
+                <div class="summary-row">
+                    <span class="label">Subtotal <small id="itemsLine">0 items</small></span>
+                    <span class="val" id="summarySubtotal">₹0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Discount</span>
+                    <span class="val" style="color:#dc2626;" id="summaryDiscount">- ₹0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">GST (<span id="gstRateLabel">{{ gst_rate|default(18) }}</span>%)</span>
+                    <span class="val" id="summaryGst">₹0.00</span>
+                </div>
+
+                <!-- Total -->
+                <div class="summary-total">
+                    <div class="st-label">Total Payable</div>
+                    <div class="st-val" id="summaryTotal">₹0.00</div>
+                    <div class="st-save" id="saveChip"></div>
+                </div>
+
+                <button type="submit" class="btn-generate" id="generateBtn">
+                    <i class="ti ti-file-invoice"></i> Generate Tax Invoice
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+    </form>
+
+</div>
+
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const money = function (v) { return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+
+// ── Smooth number tween for the summary ──
+function tween(el, to, fmt) {
+    const from = Number(el.dataset.v || 0);
+    el.dataset.v = to;
+    if (reduceMotion || from === to) { el.textContent = fmt(to); return; }
+    cancelAnimationFrame(el._raf);
+    const start = performance.now(), dur = 450;
+    (function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) el._raf = requestAnimationFrame(tick);
+    })(start);
+}
+
+// ── Update price display, stock hint & summary on row change ──
+function updateRow(el) {
+    const row = el.closest('tr');
+    const select = row.querySelector('.product-select');
+    const qtyInput = row.querySelector('.qty-input');
+    const opt = select.selectedOptions[0];
+    const qty = parseInt(qtyInput.value) || 1;
+    const price = opt ? (parseFloat(opt.dataset.price) || 0) : 0;
+    const stock = opt ? parseInt(opt.dataset.stock, 10) : 0;
+    const hint = row.querySelector('.stock-hint');
+
+    row.querySelector('.price-display').value = money(price);
+    row.querySelector('.subtotal-display').value = money(price * qty);
+
+    if (opt) {
+        qtyInput.max = stock;
+        const over = qty > stock;
+        qtyInput.classList.toggle('over', over);
+        hint.className = 'stock-hint' + (over ? ' warn' : stock <= 5 ? ' low' : '');
+        hint.textContent = over ? 'Only ' + stock + ' in stock' : stock <= 5 ? 'Low stock: ' + stock + ' left' : stock + ' in stock';
+    } else {
+        hint.textContent = '';
+    }
+
+    updateSummary();
+}
+
+// ── Recalculate invoice summary ──
+function updateSummary() {
+    let subtotal = 0, items = 0, units = 0;
+
+    document.querySelectorAll('#productTable tbody tr').forEach(function (row) {
+        const select = row.querySelector('.product-select');
+        const opt = select.selectedOptions[0];
+        if (!opt) return;
+        const qty = parseInt(row.querySelector('.qty-input').value) || 1;
+        const price = parseFloat(opt.dataset.price) || 0;
+        subtotal += price * qty;
+        items++; units += qty;
+    });
+
+    const discountInput = document.getElementById('discountInput');
+    let discount = parseFloat(discountInput.value) || 0;
+    if (discount > subtotal) { discount = subtotal; }
+    const afterDiscount = Math.max(subtotal - discount, 0);
+
+    const gstRateInput = document.getElementById('gstPercentage');
+    let gstRate = parseFloat(gstRateInput.value);
+    if (!Number.isFinite(gstRate) || gstRate < 0) gstRate = 0;
+    if (gstRate > 100) gstRate = 100;
+    document.getElementById('gstRateLabel').textContent = Number(gstRate.toFixed(2)).toString();
+    const gst = afterDiscount * gstRate / 100;
+    const total = afterDiscount + gst;
+
+    tween(document.getElementById('summarySubtotal'), subtotal, money);
+    tween(document.getElementById('summaryDiscount'), discount, function (v) { return '- ' + money(v); });
+    tween(document.getElementById('summaryGst'), gst, money);
+    tween(document.getElementById('summaryTotal'), total, money);
+
+    document.getElementById('itemsLine').textContent = items + (items === 1 ? ' item' : ' items') + ', ' + units + (units === 1 ? ' unit' : ' units');
+    document.getElementById('itemCountChip').textContent = items + (items === 1 ? ' item' : ' items');
+    document.getElementById('footerNote').textContent = units + ' units on this bill';
+
+    const chip = document.getElementById('saveChip');
+    if (discount > 0) { chip.style.display = 'block'; chip.textContent = 'You save ' + money(discount); }
+    else { chip.style.display = 'none'; }
+}
+
+// ── Discount shortcuts (percent of subtotal) ──
+function applyPercentDiscount(pct) {
+    let subtotal = 0;
+    document.querySelectorAll('#productTable tbody tr').forEach(function (row) {
+        const opt = row.querySelector('.product-select').selectedOptions[0];
+        if (!opt) return;
+        subtotal += (parseFloat(opt.dataset.price) || 0) * (parseInt(row.querySelector('.qty-input').value) || 1);
+    });
+    document.getElementById('discountInput').value = pct === 0 ? 0 : (subtotal * pct / 100).toFixed(2);
+    updateSummary();
+}
+
+// ── Quantity +/- ──
+function stepQty(btn, delta) {
+    const input = btn.parentElement.querySelector('.qty-input');
+    input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+    updateRow(input);
+}
+
+// ── Add product row ──
+function addProductRow() {
+    const tbody = document.querySelector('#productTable tbody');
+    const copy = tbody.querySelector('tr').cloneNode(true);
+
+    copy.querySelector('.qty-input').value = 1;
+    copy.querySelector('.qty-input').classList.remove('over');
+    copy.querySelector('.product-select').selectedIndex = Array.from(copy.querySelector('.product-select').options).findIndex(function (o) { return !o.disabled; });
+    copy.classList.add('row-new');
+
+    tbody.appendChild(copy);
+    updateRow(copy.querySelector('.product-select'));
+}
+
+// ── Remove product row ──
+function removeProductRow(btn) {
+    const rows = document.querySelectorAll('#productTable tbody tr');
+    if (rows.length > 1) {
+        const row = btn.closest('tr');
+        row.classList.add('row-gone');
+        setTimeout(function () { row.remove(); updateSummary(); }, reduceMotion ? 0 : 230);
+    }
+}
+
+// ── Payment method selector ──
+function selectPayment(el, value) {
+    document.querySelectorAll('.payment-opt').forEach(function (o) { o.classList.remove('selected'); });
+    el.classList.add('selected');
+    el.querySelector('input[type="radio"]').checked = true;
+}
+
+// ── Live "billing to" card ──
+const nameEl = document.getElementById('customerName'), phoneEl = document.getElementById('customerPhone');
+function updateBillingTo() {
+    const n = nameEl.value.trim(), p = phoneEl.value.trim();
+    const av = document.getElementById('btAvatar');
+    const prev = av.dataset.l || '';
+    const letter = n ? n[0].toUpperCase() : '';
+    document.getElementById('btName').textContent = n || 'Walk-in customer';
+    document.getElementById('btSub').textContent = p || 'Enter customer details';
+    if (letter) { av.textContent = letter; } else { av.innerHTML = '<i class="ti ti-user"></i>'; }
+    if (letter !== prev) { av.classList.remove('pop'); void av.offsetWidth; av.classList.add('pop'); av.dataset.l = letter; }
+}
+nameEl.addEventListener('input', updateBillingTo);
+phoneEl.addEventListener('input', updateBillingTo);
+
+// ── Block double submit ──
+document.getElementById('billingForm').addEventListener('submit', function () {
+    const b = document.getElementById('generateBtn');
+    setTimeout(function () {
+        b.disabled = true;
+        b.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+    }, 0);
+});
+
+// ── Init prices on load ──
+document.querySelectorAll('#productTable tbody tr').forEach(function (row) {
+    updateRow(row.querySelector('.product-select'));
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

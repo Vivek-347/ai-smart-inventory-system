@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Smart Inventory Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+:root { --brand: #4f6ef7; --brand2: #7c5dfa; --ink: #1a1d2e; --muted: #8a8fa8; --line: #eef0f8; --soft: #f8f9fc; --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --cyan: #06b6d4; }
+body { background: #f0f2f7; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; margin: 0; color: var(--ink); }
+
+/* ══ SPOTLIGHT ══ */
+.stat-card:hover, .metric-pill:hover, .activity-item:hover, .mini-kpi:hover {
+    background-image: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(79,110,247,.11), transparent 65%);
+}
+
+/* ══ TOPBAR ══ */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; position: relative; }
+.topbar-greeting { font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+.topbar-sub { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
+.logo-chip { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; font-size: 20px; box-shadow: 0 6px 16px rgba(79,110,247,.38); animation: floaty 3.5s ease-in-out infinite; }
+@keyframes floaty { 50% { transform: translateY(-3px) rotate(-4deg); } }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.topbar-btn { width: 38px; height: 38px; border-radius: 10px; background: #fff; border: 1px solid #e8eaf2; display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; transition: all .15s; position: relative; text-decoration: none; }
+.topbar-btn:hover { background: #eef0ff; color: var(--brand); border-color: #c7d2ff; }
+.topbar-btn i { font-size: 18px; }
+.user-avatar { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--brand), var(--brand2)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(79,110,247,.35); }
+
+/* ══ NOTIFICATIONS ══ */
+.notification-wrapper { position: relative; }
+.notif-badge { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; display: none; align-items: center; justify-content: center; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; border-radius: 20px; border: 2px solid #f0f2f7; animation: badgePop 1.6s infinite; }
+@keyframes badgePop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+.topbar-btn.ring i { animation: bell 1.2s ease-in-out 2; transform-origin: 50% 0; }
+@keyframes bell { 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-5deg); } }
+.notification-dropdown { position: absolute; top: 48px; right: 0; width: 360px; max-width: 90vw; background: #fff; border: 1px solid #e8eaf2; border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,.14); display: none; z-index: 9999; overflow: hidden; }
+.notification-dropdown.show { display: block; animation: slideDown .18s ease; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.notification-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #f0f2f7; background: #fafbff; }
+.notification-header strong { font-size: 13.5px; display: block; }
+.notification-header small { font-size: 10.5px; color: var(--muted); }
+.notif-refresh { width: 30px; height: 30px; border-radius: 8px; background: #eef0ff; border: none; cursor: pointer; color: var(--brand); display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.notif-refresh:hover { background: var(--brand); color: #fff; }
+.notif-refresh i { font-size: 15px; }
+.notification-list { max-height: 380px; overflow-y: auto; }
+.notification-list::-webkit-scrollbar { width: 3px; }
+.notification-list::-webkit-scrollbar-thumb { background: #e0e2ef; border-radius: 99px; }
+.notification-item { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #f5f6fb; cursor: pointer; transition: .15s; }
+.notification-item:hover { background: #fafbff; }
+.notification-item:last-child { border-bottom: none; }
+.notification-icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+.notification-icon i { font-size: 17px; }
+.notification-icon.danger { background: #fee2e2; color: #dc2626; } .notification-icon.warning { background: #fef3c7; color: #d97706; }
+.notification-icon.info { background: #eef0ff; color: var(--brand); } .notification-icon.ai { background: #ede9fe; color: #7c3aed; }
+.notification-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.notification-message { font-size: 11px; color: var(--muted); line-height: 1.45; }
+.notification-content { min-width: 0; }
+.notification-empty { padding: 36px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+.notification-empty i { display: block; font-size: 32px; color: var(--green); margin-bottom: 8px; }
+.notification-loading { padding: 28px; text-align: center; font-size: 12px; color: var(--muted); }
+
+/* ══ HERO ══ */
+.hero { position: relative; overflow: hidden; border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; color: #fff; background: #12142a; box-shadow: 0 18px 44px rgba(39,45,87,.3); }
+.aurora { position: absolute; inset: -50%; pointer-events: none; filter: blur(60px); opacity: .75;
+    background: radial-gradient(circle at 25% 40%, rgba(79,110,247,.9), transparent 38%), radial-gradient(circle at 72% 30%, rgba(124,93,250,.8), transparent 36%), radial-gradient(circle at 55% 85%, rgba(6,182,212,.5), transparent 34%);
+    animation: spin 24s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 34px 34px; -webkit-mask-image: radial-gradient(circle at 50% 0, #000, transparent 75%); mask-image: radial-gradient(circle at 50% 0, #000, transparent 75%); }
+.hero-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 22px; flex-wrap: wrap; }
+.hero-title { font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+.hero-title .wave { display: inline-block; transform-origin: 70% 70%; animation: wave 2.4s ease-in-out 1s 2; }
+@keyframes wave { 10% { transform: rotate(14deg); } 20% { transform: rotate(-8deg); } 30% { transform: rotate(14deg); } 40% { transform: rotate(-4deg); } 50% { transform: rotate(10deg); } 60% { transform: none; } }
+.hero-sub { font-size: 13px; color: #c1c8e4; margin-top: 4px; }
+.hero-live { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 20px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); }
+.hero-live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; flex-shrink: 0; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.7); } 70% { box-shadow: 0 0 0 9px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+.hero-kpis { display: flex; gap: 12px; flex-wrap: wrap; }
+.mini-kpi { min-width: 150px; padding: 13px 16px; border-radius: 14px; background-color: rgba(10,12,30,.4); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(10px); }
+.mini-kpi .k-label { font-size: 11px; color: #c1c8e4; }
+.mini-kpi .k-val { font-size: 22px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+/* ══ PERIOD (sliding segmented control) ══ */
+.period-bar { background: #fff; border-radius: 12px; border: 1px solid var(--line); padding: 10px 14px 10px 18px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.period-label { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; }
+.period-label i { font-size: 16px; color: var(--brand); }
+.period-btns { display: flex; gap: 2px; position: relative; background: var(--soft); border: 1px solid var(--line); padding: 3px; border-radius: 10px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.period-btns::-webkit-scrollbar { display: none; }
+.period-slider { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; border-radius: 8px; background: linear-gradient(135deg, var(--brand), var(--brand2)); box-shadow: 0 4px 12px rgba(79,110,247,.4); transition: left .35s cubic-bezier(.3,1.2,.4,1), width .35s cubic-bezier(.3,1.2,.4,1); }
+.period-btn { position: relative; z-index: 1; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; text-decoration: none; color: #5a5f7d; transition: color .2s; white-space: nowrap; flex-shrink: 0; }
+.period-btn:hover { color: var(--brand); }
+.period-btn.active { color: #fff; font-weight: 600; }
+
+/* ══ BANNER ══ */
+.viewing-banner { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, #eef0ff, #f5f0ff); border: 1px solid #dde2ff; border-radius: 10px; padding: 10px 16px; margin-bottom: 18px; font-size: 12.5px; color: #3d4166; }
+.viewing-banner i { font-size: 16px; color: var(--brand); flex-shrink: 0; }
+.viewing-banner b { color: var(--ink); }
+
+/* ══ STATS ══ */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat-card { background-color: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--line); position: relative; overflow: hidden; transition: transform .18s, box-shadow .18s; cursor: default; min-width: 0; }
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.09); }
+.stat-card::before { content: ''; position: absolute; bottom: 0; right: 0; width: 90px; height: 90px; border-radius: 90px 0 14px 0; opacity: .06; }
+.stat-card.card1::before, .stat-card.card4::before { background: var(--brand); } .stat-card.card2::before { background: var(--green); }
+.stat-card.card3::before { background: var(--amber); } .stat-card.card5::before { background: var(--red); }
+.stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.stat-card.card1::after { background: linear-gradient(90deg, #4f6ef7, #818cf8); } .stat-card.card2::after { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.stat-card.card3::after { background: linear-gradient(90deg, #d97706, #f59e0b); } .stat-card.card4::after { background: linear-gradient(90deg, #4f6ef7, #06b6d4); }
+.stat-card.card5::after { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform .25s; }
+.stat-card:hover .stat-icon { transform: scale(1.12) rotate(-6deg); }
+.stat-icon i { font-size: 20px; }
+.stat-icon.blue { background: #eef0ff; color: var(--brand); } .stat-icon.green { background: #dcfce7; color: #16a34a; }
+.stat-icon.amber { background: #fef3c7; color: #d97706; } .stat-icon.red { background: #fee2e2; color: #dc2626; }
+.stat-label { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 3px; }
+.stat-value { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+.stat-change { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.stat-change i { font-size: 12px; }
+.stat-change.up { background: #dcfce7; color: #16a34a; } .stat-change.down { background: #fee2e2; color: #dc2626; }
+.stat-change.warn { background: #fef3c7; color: #b45309; } .stat-change.blue { background: #eef0ff; color: var(--brand); }
+.stat-card.alert-card { animation: alertGlow 2.4s ease-in-out infinite; }
+@keyframes alertGlow { 50% { box-shadow: 0 0 0 4px rgba(239,68,68,.12); } }
+
+/* ══ BOTTOM ══ */
+.bottom-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; }
+.panel { background: #fff; border-radius: 14px; border: 1px solid var(--line); padding: 20px 22px; min-width: 0; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.panel-title { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+.panel-title i { font-size: 17px; color: var(--brand); }
+.panel-badge { font-size: 10.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: #eef0ff; color: var(--brand); white-space: nowrap; }
+.panel-badge.live { display: inline-flex; align-items: center; gap: 5px; background: #dcfce7; color: #16a34a; }
+.panel-badge.live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; }
+
+/* ══ HEALTH ══ */
+.health-top { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-bottom: 18px; }
+.gauge { position: relative; width: 150px; height: 150px; flex-shrink: 0; }
+.gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+.gauge .bg { stroke: #eef0f6; }
+.gauge .fg { stroke: url(#gaugeGrad); stroke-dasharray: 339.3; stroke-dashoffset: var(--off); animation: gaugeIn 1.6s cubic-bezier(.2,.8,.2,1) both; filter: drop-shadow(0 4px 8px rgba(79,110,247,.35)); }
+@keyframes gaugeIn { from { stroke-dashoffset: 339.3; } }
+.gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.health-score-num { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.health-score-of { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.health-side { flex: 1; min-width: 200px; }
+.health-score-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.status-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 6px 13px; border-radius: 20px; }
+.status-chip i { font-size: 13px; }
+.status-chip.good { background: #dcfce7; color: #15803d; } .status-chip.stable { background: #fef3c7; color: #b45309; } .status-chip.bad { background: #fee2e2; color: #dc2626; }
+.health-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.metric-pill { background-color: var(--soft); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); transition: border .15s; }
+.metric-pill:hover { border-color: #c7d2ff; }
+.mp-label { font-size: 10.5px; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
+.mp-val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mp-val.good { color: #16a34a; } .mp-val.warn { color: #d97706; }
+.mp-bar { height: 5px; background: #e8eaf2; border-radius: 99px; margin-top: 8px; overflow: hidden; }
+.mp-bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #4f6ef7, #22c55e); transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+.mp-bar.warn i { background: linear-gradient(90deg, #d97706, #f59e0b); }
+
+/* ══ ACTIVITY ══ */
+.activity-list { display: flex; flex-direction: column; gap: 7px; }
+.activity-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background-color: var(--soft); border: 1px solid var(--line); transition: all .15s; }
+.activity-item:hover { border-color: #c7d2ff; }
+.activity-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.activity-dot.blue { background: var(--brand); } .activity-dot.green { background: var(--green); } .activity-dot.amber { background: var(--amber); } .activity-dot.red { background: var(--red); }
+.activity-text { flex: 1; font-size: 12px; color: #5a5f7d; }
+.activity-time { font-size: 12px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.divider-line { border: none; border-top: 1px solid #f0f2f7; margin: 14px 0; }
+.ai-suggestion { border-radius: 12px; padding: 13px 15px; font-size: 12px; line-height: 1.65; display: flex; gap: 10px; align-items: flex-start; }
+.ai-suggestion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.ai-suggestion b { display: block; margin-bottom: 3px; font-size: 12.5px; }
+.ai-suggestion.good { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.ai-suggestion.stable { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.ai-suggestion.bad { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+
+/* Small desktop / laptop */
+@media (max-width: 1280px) {
+    .bottom-grid { grid-template-columns: minmax(0, 1fr) 300px; }
+    .hero { padding: 24px; }
+    .mini-kpi { min-width: 130px; }
+}
+
+/* Tablet: single-column panels, hero KPIs span the full row */
+@media (max-width: 1100px) {
+    .bottom-grid { grid-template-columns: minmax(0, 1fr); }
+    .hero-kpis { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
+    .mini-kpi { min-width: 0; }
+}
+
+/* Tablet portrait / large phone */
+@media (max-width: 800px) {
+    .content { margin-left: 0 !important; }
+    .topbar { margin-bottom: 16px; }
+    .hero { border-radius: 16px; padding: 20px; }
+    .hero-title { font-size: 19px; }
+    .period-bar { padding: 10px 12px; }
+    .panel { padding: 18px; }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+    .topbar-greeting { font-size: 18px; }
+    .topbar-sub { font-size: 11.5px; }
+    .logo-chip { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+
+    /* Notification panel becomes a full-width sheet under the top bar */
+    .notification-wrapper { position: static; }
+    .notification-dropdown { left: 0; right: 0; top: calc(100% + 8px); width: auto; max-width: none; }
+    .notification-list { max-height: 55vh; }
+
+    .hero { padding: 18px 16px; margin-bottom: 14px; }
+    .hero-title { font-size: 17px; }
+    .hero-sub { font-size: 12px; }
+    .hero-live { font-size: 11px; }
+    .hero-inner { gap: 16px; }
+    .hero-kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hero-kpis .mini-kpi:last-child { grid-column: 1 / -1; }
+    .mini-kpi { padding: 11px 13px; }
+    .mini-kpi .k-val { font-size: 19px; }
+
+    /* Period filter: label on its own line, tabs scroll sideways */
+    .period-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+    .period-btns { width: 100%; }
+    .period-btn { padding: 7px 14px; }
+
+    .viewing-banner { font-size: 12px; padding: 9px 12px; align-items: flex-start; line-height: 1.5; }
+
+    /* Stat cards: two per row, last one full width */
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stats-grid .stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .stat-card { padding: 14px; }
+    .stat-icon { width: 36px; height: 36px; margin-bottom: 10px; }
+    .stat-value { font-size: 20px; margin-bottom: 8px; }
+
+    .panel { padding: 16px 14px; border-radius: 12px; }
+    .panel-header { margin-bottom: 14px; }
+
+    /* Health block: centred gauge */
+    .health-top { justify-content: center; text-align: center; gap: 14px; }
+    .gauge { width: 132px; height: 132px; }
+    .health-score-num { font-size: 34px; }
+    .health-side { min-width: 0; flex-basis: 100%; }
+    .status-chip { text-align: left; }
+
+    .activity-item { padding: 9px 10px; }
+
+    /* Chat widget (styles live in chat.css): keep it inside the screen */
+    #aiChat { max-width: calc(100vw - 24px); max-height: calc(100dvh - 90px); }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+    .health-metrics { grid-template-columns: 1fr; }
+    .stat-value { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <div>
+            <div class="topbar-greeting"><span class="logo-chip"><i class="ti ti-layout-dashboard"></i></span> Dashboard</div>
+            <div class="topbar-sub">AI Smart Inventory · Billing & Business Analytics System</div>
+        </div>
+        <div class="topbar-right">
+
+            <!-- Notification Bell -->
+            <div class="notification-wrapper">
+                <div class="topbar-btn" id="notificationBtn" onclick="toggleNotifications()">
+                    <i class="ti ti-bell"></i>
+                    <span class="notif-badge" id="notificationBadge">0</span>
+                </div>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <div>
+                            <strong>Notifications</strong>
+                            <small id="notificationCount">Loading...</small>
+                        </div>
+                        <button class="notif-refresh" onclick="loadNotifications()">
+                            <i class="ti ti-refresh"></i>
+                        </button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-loading">Loading notifications...</div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="/settings" class="topbar-btn"><i class="ti ti-settings"></i></a>
+
+            <div class="user-avatar">{{ session['name'][0] | upper }}</div>
+        </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="aurora"></div>
+        <div class="hero-inner">
+            <div>
+                <div class="hero-title">Welcome back, {{ session['name'] }} <span class="wave">👋</span></div>
+                <div class="hero-sub" id="heroGreeting">Here is how your business is doing.</div>
+                <span class="hero-live"><span class="dot"></span> Live analytics · {{ dashboard_title }}</span>
+            </div>
+            <div class="hero-kpis">
+                <div class="mini-kpi">
+                    <div class="k-label">Profit margin</div>
+                    <div class="k-val" id="kpiMargin">-</div>
+                </div>
+                <div class="mini-kpi">
+                    <div class="k-label">Avg. bill value</div>
+                    <div class="k-val" id="kpiAvgBill">-</div>
+                </div>
+                <div class="mini-kpi">
+                    <div class="k-label">Health score</div>
+                    <div class="k-val">{{ business_health }}<span style="font-size:12px;color:#c1c8e4;"> / 100</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Filter -->
+    <div class="period-bar">
+        <div class="period-label"><i class="ti ti-calendar-stats"></i> Dashboard period</div>
+        <div class="period-btns" id="periodBtns">
+            <span class="period-slider" id="periodSlider"></span>
+            <a href="/dashboard?period=today"    class="period-btn {{ 'active' if selected_period=='today'    else '' }}">Today</a>
+            <a href="/dashboard?period=7days"    class="period-btn {{ 'active' if selected_period=='7days'    else '' }}">7 Days</a>
+            <a href="/dashboard?period=30days"   class="period-btn {{ 'active' if selected_period=='30days'   else '' }}">30 Days</a>
+            <a href="/dashboard?period=6months"  class="period-btn {{ 'active' if selected_period=='6months'  else '' }}">6 Months</a>
+            <a href="/dashboard?period=year"     class="period-btn {{ 'active' if selected_period=='year'     else '' }}">Year</a>
+            <a href="/dashboard?period=all"      class="period-btn {{ 'active' if selected_period=='all'      else '' }}">Lifetime</a>
+        </div>
+    </div>
+
+    <!-- Viewing Banner -->
+    <div class="viewing-banner">
+        <i class="ti ti-info-circle"></i>
+        <span>Viewing <b>&nbsp;{{ dashboard_title }}&nbsp;</b> Dashboard Statistics</span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+
+        <div class="stat-card card1">
+            <div class="stat-icon blue"><i class="ti ti-package"></i></div>
+            <div class="stat-label">Available Products</div>
+            <div class="stat-value" data-count="{{ total_products }}">{{ total_products }}</div>
+            <span class="stat-change blue"><i class="ti ti-package"></i> Inventory</span>
+        </div>
+
+        <div class="stat-card card2">
+            <div class="stat-icon green"><i class="ti ti-currency-rupee"></i></div>
+            <div class="stat-label">{{ dashboard_title }} Sales</div>
+            <div class="stat-value" data-count="{{ total_sales }}" data-money="1">₹{{ "{:,.0f}".format(total_sales) }}</div>
+            <span class="stat-change up"><i class="ti ti-chart-line"></i> Revenue</span>
+        </div>
+
+        <div class="stat-card card3">
+            <div class="stat-icon amber"><i class="ti ti-trending-up"></i></div>
+            <div class="stat-label">{{ dashboard_title }} Profit</div>
+            <div class="stat-value" data-count="{{ total_profit }}" data-money="1">₹{{ "{:,.0f}".format(total_profit) }}</div>
+            <span class="stat-change warn"><i class="ti ti-coins"></i> Net Profit</span>
+        </div>
+
+        <div class="stat-card card4">
+            <div class="stat-icon blue"><i class="ti ti-receipt"></i></div>
+            <div class="stat-label">{{ dashboard_title }} Bills</div>
+            <div class="stat-value" data-count="{{ total_bills }}">{{ total_bills }}</div>
+            <span class="stat-change blue"><i class="ti ti-file-invoice"></i> Generated</span>
+        </div>
+
+        <div class="stat-card card5 {{ 'alert-card' if low_stock and low_stock > 0 else '' }}">
+            <div class="stat-icon red"><i class="ti ti-alert-triangle"></i></div>
+            <div class="stat-label">Low Stock</div>
+            <div class="stat-value" data-count="{{ low_stock }}">{{ low_stock }}</div>
+            <span class="stat-change down"><i class="ti ti-alert-circle"></i> Attention</span>
+        </div>
+
+    </div>
+
+    <!-- Bottom Grid -->
+    <div class="bottom-grid">
+
+        <!-- Business Health -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="ti ti-heart-handshake"></i> Business Health Score</span>
+                <span class="panel-badge">{{ dashboard_title }}</span>
+            </div>
+
+            <div class="health-top">
+                <div class="gauge">
+                    <svg viewBox="0 0 120 120" style="--off: {{ (339.3 * (1 - business_health / 100)) | round(1) }}">
+                        <defs>
+                            <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#4f6ef7"/><stop offset="1" stop-color="#22c55e"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="bg" cx="60" cy="60" r="54"/>
+                        <circle class="fg" cx="60" cy="60" r="54"/>
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="health-score-num" data-count="{{ business_health }}">{{ business_health }}</div>
+                        <div class="health-score-of">out of 100</div>
+                    </div>
+                </div>
+
+                <div class="health-side">
+                    <div class="health-score-sub">Overall business performance score</div>
+
+                    {% if business_health >= 80 %}
+                    <div class="status-chip good"><i class="ti ti-circle-check-filled"></i> Excellent Business Performance 🚀</div>
+                    {% elif business_health >= 60 %}
+                    <div class="status-chip stable"><i class="ti ti-alert-triangle"></i> Stable Business 👍</div>
+                    {% else %}
+                    <div class="status-chip bad"><i class="ti ti-alert-circle"></i> Business Needs Improvement</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="health-metrics">
+                <div class="metric-pill">
+                    <div class="mp-label">Inventory Score</div>
+                    <div class="mp-val good" data-count="{{ inventory_score }}" data-suffix="%">{{ inventory_score }}%</div>
+                    <div class="mp-bar"><i data-w="{{ inventory_score }}"></i></div>
+                </div>
+                <div class="metric-pill">
+                    <div class="mp-label">Sales Score</div>
+                    <div class="mp-val warn" data-count="{{ sales_score }}" data-suffix="%">{{ sales_score }}%</div>
+                    <div class="mp-bar warn"><i data-w="{{ sales_score }}"></i></div>
+                </div>
+                <div class="metric-pill">
+                    <div class="mp-label">Profit Score</div>
+                    <div class="mp-val good" data-count="{{ profit_score }}" data-suffix="%">{{ profit_score }}%</div>
+                    <div class="mp-bar"><i data-w="{{ profit_score }}"></i></div>
+                </div>
+                <div class="metric-pill">
+                    <div class="mp-label">Overall Score</div>
+                    <div class="mp-val good" data-count="{{ business_health }}" data-suffix="%">{{ business_health }}%</div>
+                    <div class="mp-bar"><i data-w="{{ business_health }}"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Summary -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="ti ti-report-analytics"></i> Business Summary</span>
+                <span class="panel-badge live">Live</span>
+            </div>
+
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-dot green"></div>
+                    <div class="activity-text">Products Available</div>
+                    <div class="activity-time">{{ total_products }}</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-dot blue"></div>
+                    <div class="activity-text">Sales Generated</div>
+                    <div class="activity-time">₹{{ "{:,.0f}".format(total_sales) }}</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-dot amber"></div>
+                    <div class="activity-text">Net Profit</div>
+                    <div class="activity-time">₹{{ "{:,.0f}".format(total_profit) }}</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-dot red"></div>
+                    <div class="activity-text">Low Stock Products</div>
+                    <div class="activity-time">{{ low_stock }}</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-dot blue"></div>
+                    <div class="activity-text">Bills Generated</div>
+                    <div class="activity-time">{{ total_bills }}</div>
+                </div>
+            </div>
+
+            <hr class="divider-line">
+
+            {% if business_health >= 80 %}
+            <div class="ai-suggestion good">
+                <span class="ai-suggestion-icon">🤖</span>
+                <div><b>AI Suggestion</b> Your business is performing very well. Maintain inventory and continue current strategy.</div>
+            </div>
+            {% elif business_health >= 60 %}
+            <div class="ai-suggestion stable">
+                <span class="ai-suggestion-icon">🤖</span>
+                <div><b>AI Suggestion</b> Business is stable. Improve marketing and monitor slow-moving products.</div>
+            </div>
+            {% else %}
+            <div class="ai-suggestion bad">
+                <span class="ai-suggestion-icon">🤖</span>
+                <div><b>AI Suggestion</b> Focus on increasing sales, clearing dead stock, and improving profitability.</div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{# AI Chat #}
+<div class="ai-button" onclick="openChat()">🤖</div>
+<div class="ai-chat" id="aiChat">
+    <div class="chat-header">
+        <span>🤖 AI Business Assistant</span>
+        <button onclick="closeChat()">✖</button>
+    </div>
+    <div class="chat-body" id="chatBody">
+        <div class="bot-message">
+            Hello {{ session['name'] }} 👋<br><br>
+            I can help you with
+            <ul>
+                <li>Sales Analysis</li>
+                <li>Profit Analysis</li>
+                <li>Business Health</li>
+                <li>Stock Management</li>
+                <li>Reports</li>
+            </ul>
+        </div>
+    </div>
+    <div class="chat-footer">
+        <input type="text" id="userMessage" placeholder="Ask me anything...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ═══ Count-up helper ═══
+function animateNum(el, target, fmt) {
+    target = Number(target) || 0;
+    fmt = fmt || function (v) { return Math.round(v); };
+    if (reduceMotion || target === 0) { el.textContent = fmt(target); return; }
+    const start = performance.now(), dur = 1100;
+    (function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(target * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+    })(start);
+}
+const inr = function (v) { return "₹" + Math.round(v).toLocaleString("en-IN"); };
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Count up every stat
+    document.querySelectorAll("[data-count]").forEach(function (el) {
+        const suffix = el.dataset.suffix || "";
+        const fmt = el.dataset.money ? inr : function (v) { return Math.round(v) + suffix; };
+        animateNum(el, el.dataset.count, fmt);
+    });
+
+    // Score bars fill when visible
+    const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.style.width = Math.min(100, Number(e.target.dataset.w) || 0) + "%"; io.unobserve(e.target); }
+        });
+    }, { threshold: 0.2 });
+    document.querySelectorAll(".mp-bar i").forEach(function (b) { io.observe(b); });
+
+    // Hero KPIs (derived from the numbers already on this page)
+    const sales = Number("{{ total_sales }}") || 0;
+    const profit = Number("{{ total_profit }}") || 0;
+    const bills = Number("{{ total_bills }}") || 0;
+    const margin = sales > 0 ? profit / sales * 100 : 0;
+    const avgBill = bills > 0 ? sales / bills : 0;
+    animateNum(document.getElementById("kpiMargin"), margin, function (v) { return v.toFixed(1) + "%"; });
+    animateNum(document.getElementById("kpiAvgBill"), avgBill, inr);
+
+    // Time-aware greeting line
+    const h = new Date().getHours();
+    const part = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+    document.getElementById("heroGreeting").textContent = "Good " + part + ". Here is how your business is doing.";
+
+    // Sliding period indicator
+    const slider = document.getElementById("periodSlider");
+    const periodBox = document.getElementById("periodBtns");
+    function placeSlider() {
+        const active = document.querySelector(".period-btn.active");
+        if (!active) { slider.style.width = "0"; return; }
+        slider.style.left = active.offsetLeft + "px";
+        slider.style.width = active.offsetWidth + "px";
+        // On narrow screens the tab strip scrolls: keep the active tab in view
+        if (periodBox.scrollWidth > periodBox.clientWidth) {
+            periodBox.scrollLeft = active.offsetLeft - (periodBox.clientWidth - active.offsetWidth) / 2;
+        }
+    }
+    placeSlider();
+    window.addEventListener("resize", placeSlider);
+    document.querySelectorAll(".period-btn").forEach(function (b) {
+        b.addEventListener("mouseenter", function () { slider.style.opacity = ".35"; });
+        b.addEventListener("mouseleave", function () { slider.style.opacity = "1"; });
+        b.addEventListener("click", function () {
+            document.querySelectorAll(".period-btn").forEach(function (x) { x.classList.remove("active"); });
+            b.classList.add("active");
+            placeSlider();
+        });
+    });
+
+    loadNotifications();
+});
+
+// ═══ Mouse-follow spotlight ═══
+document.addEventListener("mousemove", function (e) {
+    const card = e.target.closest(".stat-card, .metric-pill, .activity-item, .mini-kpi");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    card.style.setProperty("--my", (e.clientY - r.top) + "px");
+});
+
+// ═══ Notifications (same API as before) ═══
+function escHtml(v) {
+    return String(v === null || v === undefined ? "" : v)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function toggleNotifications() {
+    const dd = document.getElementById('notificationDropdown');
+    dd.classList.toggle('show');
+    if (dd.classList.contains('show')) loadNotifications();
+}
+
+async function loadNotifications() {
+    const list = document.getElementById('notificationList');
+    try {
+        const res  = await fetch('/api/notifications');
+        const data = await res.json();
+        updateNotificationBadge(data.count);
+        if (!data.notifications || data.notifications.length === 0) {
+            list.innerHTML = `
+                <div class="notification-empty">
+                    <i class="ti ti-circle-check"></i>
+                    No new notifications<br>
+                    <small>Everything looks good!</small>
+                </div>`;
+            return;
+        }
+        list.innerHTML = '';
+        data.notifications.forEach(n => {
+            const el = document.createElement('div');
+            el.className = 'notification-item';
+            el.onclick = () => { if (n.link) window.location.href = n.link; };
+            el.innerHTML = `
+                <div class="notification-icon ${escHtml(n.type)}">
+                    <i class="ti ${escHtml(n.icon)}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${escHtml(n.title)}</div>
+                    <div class="notification-message">${escHtml(n.message)}</div>
+                </div>`;
+            list.appendChild(el);
+        });
+    } catch (e) {
+        list.innerHTML = `<div class="notification-empty">Unable to load notifications.</div>`;
+    }
+}
+
+let lastNotifCount = 0;
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notificationBadge');
+    const text  = document.getElementById('notificationCount');
+    const btn   = document.getElementById('notificationBtn');
+    if (count > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = count > 9 ? '9+' : count;
+        text.textContent = `${count} alert${count > 1 ? 's' : ''}`;
+        if (count > lastNotifCount) { btn.classList.remove('ring'); void btn.offsetWidth; btn.classList.add('ring'); }
+    } else {
+        badge.style.display = 'none';
+        text.textContent = 'No new notifications';
+    }
+    lastNotifCount = count || 0;
+}
+
+setInterval(loadNotifications, 60000);
+
+document.addEventListener('click', function(e) {
+    const wrapper = document.querySelector('.notification-wrapper');
+    const dd = document.getElementById('notificationDropdown');
+    if (wrapper && !wrapper.contains(e.target)) dd.classList.remove('show');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Product</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* { box-sizing: border-box; }
+
+body {
+    background: #f0f2f7;
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0; min-height: 100vh;
+}
+
+/* ── Page Header ── */
+.page-header {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eef0f8;
+    padding: 18px 24px;
+    margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.page-header h2 { font-size: 17px; font-weight: 700; color: #1a1d2e; margin: 0; }
+.page-header p  { font-size: 12.5px; color: #8a8fa8; margin: 2px 0 0; }
+
+.breadcrumb-nav {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+    font-size: 12px; color: #b0b4c8;
+}
+
+.breadcrumb-nav a {
+    color: #4f6ef7; text-decoration: none; font-weight: 500;
+    transition: color 0.15s;
+}
+
+.breadcrumb-nav a:hover { color: #3d5ce5; }
+.breadcrumb-nav i { font-size: 12px; }
+
+/* ── Layout ── */
+.form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+    align-items: start;
+}
+
+/* ── Form Panel ── */
+.form-panel {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eef0f8;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+    min-width: 0;
+}
+
+.form-panel:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+.panel-section {
+    padding: 22px 26px;
+    border-bottom: 1px solid #f0f2f7;
+    position: relative;
+}
+
+.panel-section:last-child { border-bottom: none; }
+
+/* Colored left accent per section */
+.panel-section::before {
+    content: '';
+    position: absolute; left: 0; top: 16px; bottom: 16px;
+    width: 3px; border-radius: 0 3px 3px 0;
+}
+
+.section-blue::before   { background: linear-gradient(180deg, #4f6ef7, #818cf8); }
+.section-green::before  { background: linear-gradient(180deg, #16a34a, #22c55e); }
+.section-amber::before  { background: linear-gradient(180deg, #d97706, #f59e0b); }
+
+.section-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #b0b4c8; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 7px;
+}
+
+.section-label .s-icon {
+    width: 26px; height: 26px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.section-label .s-icon i { font-size: 14px; }
+.s-icon.blue  { background: #eef0ff; color: #4f6ef7; }
+.s-icon.green { background: #dcfce7; color: #16a34a; }
+.s-icon.amber { background: #fef3c7; color: #d97706; }
+
+/* ── Form Controls ── */
+.form-label {
+    font-size: 12.5px; font-weight: 600;
+    color: #3d4166; margin-bottom: 6px; display: block;
+}
+
+.form-group { margin-bottom: 16px; }
+.form-group:last-child { margin-bottom: 0; }
+
+.input-wrap { position: relative; }
+
+.input-wrap .form-control { padding-left: 13px; }
+.input-wrap.has-prefix .form-control { padding-left: 28px; }
+
+.prefix-sym {
+    position: absolute; left: 11px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px; color: #8a8fa8; font-weight: 500;
+    pointer-events: none;
+}
+
+.form-control {
+    width: 100%;
+    border: 1.5px solid #e8eaf2;
+    border-radius: 9px;
+    padding: 10px 13px;
+    font-size: 13px; color: #1a1d2e;
+    background: #fafbfd;
+    transition: all 0.2s;
+    box-shadow: none !important; outline: none;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.form-control:focus {
+    border-color: #4f6ef7;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(79,110,247,0.08) !important;
+}
+
+.form-control::placeholder { color: #c8ccde; }
+
+.stock-input { max-width: 180px; }
+
+.form-hint {
+    font-size: 11px; color: #b0b4c8; margin-top: 5px;
+    display: flex; align-items: center; gap: 5px;
+}
+
+.form-hint i { font-size: 12px; flex-shrink: 0; }
+
+.price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── Actions ── */
+.form-actions {
+    padding: 16px 26px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    background: linear-gradient(90deg, #f8f9fc, #fafbff);
+    border-top: 1px solid #f0f2f7;
+}
+
+.btn-submit {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, #4f6ef7, #7c5dfa);
+    color: #fff; border: none; border-radius: 9px;
+    padding: 10px 24px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'Inter', system-ui, sans-serif;
+    box-shadow: 0 4px 14px rgba(79,110,247,0.3);
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,110,247,0.4);
+}
+
+.btn-submit i { font-size: 16px; }
+
+.btn-cancel {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    background: #f0f2f7; color: #8a8fa8;
+    border: none; border-radius: 9px;
+    padding: 10px 18px; font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.btn-cancel:hover { background: #e4e7f0; color: #1a1d2e; }
+
+/* ── Side Panel ── */
+.side-panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.info-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eef0f8;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+}
+
+.info-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.07); }
+
+.info-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #f0f2f7;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 600; color: #1a1d2e;
+}
+
+.info-card-header .hdr-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.info-card-header .hdr-icon i { font-size: 15px; }
+.hdr-icon.blue   { background: #eef0ff; color: #4f6ef7; }
+.hdr-icon.purple { background: #f3e8ff; color: #7c3aed; }
+
+.info-card-body { padding: 16px 18px; }
+
+/* ── Margin Preview ── */
+.margin-preview {
+    background: linear-gradient(135deg, #f0f3ff 0%, #fafbff 100%);
+    border: 1px solid #dde2ff;
+    border-radius: 10px; padding: 14px 16px;
+}
+
+.mp-head {
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.09em; text-transform: uppercase;
+    color: #b0b4c8; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+
+.mp-live {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(74,222,128,0.12);
+    color: #16a34a; font-size: 9px; font-weight: 600;
+    padding: 2px 7px; border-radius: 20px;
+    border: 1px solid rgba(74,222,128,0.25);
+}
+
+.mp-live span { width: 5px; height: 5px; background: #22c55e; border-radius: 50%; animation: pulse-dot 2s infinite; }
+
+.margin-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 7px 0; border-bottom: 1px dashed #e8eaff;
+    font-size: 12px; color: #5a5f7d;
+}
+
+.margin-row:last-child { border-bottom: none; padding-bottom: 0; }
+.margin-row .val { font-weight: 700; color: #1a1d2e; font-size: 12.5px; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ── Tips ── */
+.tip-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 9px;
+    border: 1px solid #eef0f8; background: #fafbfd;
+    margin-bottom: 8px; transition: all 0.15s;
+    font-size: 12px; color: #5a5f7d; line-height: 1.6;
+}
+
+.tip-item:last-child { margin-bottom: 0; }
+.tip-item:hover { border-color: #c7d2ff; background: #f5f7ff; }
+
+.tip-icon {
+    width: 26px; height: 26px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+}
+
+.tip-icon i { font-size: 14px; }
+.tip-icon.blue  { background: #eef0ff; color: #4f6ef7; }
+.tip-icon.green { background: #dcfce7; color: #16a34a; }
+.tip-icon.amber { background: #fef3c7; color: #d97706; }
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+
+/* Laptop / small desktop: slimmer side panel */
+@media (max-width: 1280px) {
+    .form-layout { grid-template-columns: minmax(0, 1fr) 270px; gap: 16px; }
+}
+
+/* Tablet: single column, side cards sit side by side below the form */
+@media (max-width: 1100px) {
+    .form-layout { grid-template-columns: minmax(0, 1fr); }
+    .side-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+}
+
+/* Large phone / small tablet */
+@media (max-width: 767.98px) {
+    .page-header { padding: 16px 18px; }
+    .panel-section { padding: 18px 18px 18px 20px; }
+    .form-actions { padding: 14px 18px; }
+    .side-panel { grid-template-columns: 1fr; }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+    .page-header { margin-bottom: 16px; }
+    .price-row { grid-template-columns: 1fr; gap: 0; }
+    .price-row .form-group { margin-bottom: 16px; }
+    .price-row .form-group:last-child { margin-bottom: 0; }
+    .stock-input { max-width: 100%; }
+
+    /* 16px inputs stop iOS from zooming in on focus */
+    .form-control { font-size: 16px; padding: 11px 13px; }
+    .input-wrap.has-prefix .form-control { padding-left: 30px; }
+    .prefix-sym { font-size: 15px; }
+
+    /* Full-width, thumb-friendly buttons (Add on top, Cancel below) */
+    .form-actions { flex-direction: column-reverse; align-items: stretch; }
+    .btn-submit, .btn-cancel { width: 100%; padding: 12px 18px; }
+
+    .breadcrumb-nav { font-size: 11.5px; }
+    .info-card-body { padding: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h2>Add Product</h2>
+            <p>Register a new product into your inventory</p>
+        </div>
+        <div class="breadcrumb-nav">
+            <a href="/dashboard">Dashboard</a>
+            <i class="ti ti-chevron-right"></i>
+            <a href="/productList">Product List</a>
+            <i class="ti ti-chevron-right"></i>
+            <span>Add Product</span>
+        </div>
+    </div>
+
+    <form action="/addProduct" method="post">
+    <div class="form-layout">
+
+        <!-- Left Form -->
+        <div class="form-panel">
+
+            <!-- Product Info -->
+            <div class="panel-section section-blue">
+                <div class="section-label">
+                    <div class="s-icon blue"><i class="ti ti-package"></i></div>
+                    Product Information
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Product Name</label>
+                    <div class="input-wrap">
+                        <input type="text" name="product_name" class="form-control"
+                            placeholder="e.g. Wireless Headphones" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <div class="input-wrap">
+                        <input type="text" name="category" class="form-control"
+                            placeholder="e.g. Electronics, Clothing, Food..." required>
+                    </div>
+                    <div class="form-hint">
+                        <i class="ti ti-info-circle"></i>
+                        Groups products in reports and AI predictions.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="panel-section section-green">
+                <div class="section-label">
+                    <div class="s-icon green"><i class="ti ti-currency-rupee"></i></div>
+                    Pricing
+                </div>
+
+                <div class="price-row">
+                    <div class="form-group">
+                        <label class="form-label">Cost Price</label>
+                        <div class="input-wrap has-prefix">
+                            <span class="prefix-sym">₹</span>
+                            <input type="number" step="0.01" name="cost_price"
+                                id="costPrice" class="form-control"
+                                placeholder="0.00" inputmode="decimal" oninput="calcMargin()" required>
+                        </div>
+                        <div class="form-hint"><i class="ti ti-arrow-down-circle"></i> What you paid.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Selling Price</label>
+                        <div class="input-wrap has-prefix">
+                            <span class="prefix-sym">₹</span>
+                            <input type="number" step="0.01" name="selling_price"
+                                id="sellPrice" class="form-control"
+                                placeholder="0.00" inputmode="decimal" oninput="calcMargin()" required>
+                        </div>
+                        <div class="form-hint"><i class="ti ti-arrow-up-circle"></i> Customer pays.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock -->
+            <div class="panel-section section-amber">
+                <div class="section-label">
+                    <div class="s-icon amber"><i class="ti ti-boxes"></i></div>
+                    Stock
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Initial Stock Quantity</label>
+                    <div class="input-wrap">
+                        <input type="number" name="stock" class="form-control stock-input"
+                            placeholder="0" inputmode="numeric" required>
+                    </div>
+                    <div class="form-hint">
+                        <i class="ti ti-refresh"></i>
+                        Update anytime from Product List.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">
+                    <i class="ti ti-circle-plus"></i> Add Product
+                </button>
+                <a href="/productList" class="btn-cancel">
+                    <i class="ti ti-arrow-left"></i> Cancel
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Right Panel -->
+        <div class="side-panel">
+
+            <!-- Profit Preview Card -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="hdr-icon purple"><i class="ti ti-trending-up"></i></div>
+                    Profit Preview
+                </div>
+                <div class="info-card-body">
+                    <div class="margin-preview">
+                        <div class="mp-head">
+                            Live Calculation
+                            <span class="mp-live"><span></span> Auto</span>
+                        </div>
+                        <div class="margin-row">
+                            <span>Cost Price</span>
+                            <span class="val" id="previewCost">₹ —</span>
+                        </div>
+                        <div class="margin-row">
+                            <span>Selling Price</span>
+                            <span class="val" id="previewSell">₹ —</span>
+                        </div>
+                        <div class="margin-row">
+                            <span>Profit / Unit</span>
+                            <span class="val" id="previewProfit">₹ —</span>
+                        </div>
+                        <div class="margin-row">
+                            <span>Margin %</span>
+                            <span class="val" id="previewMargin">— %</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="hdr-icon blue"><i class="ti ti-bulb"></i></div>
+                    Quick Tips
+                </div>
+                <div class="info-card-body">
+                    <div class="tip-item">
+                        <div class="tip-icon blue"><i class="ti ti-tag"></i></div>
+                        Use clear category names — they power AI predictions and reports.
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon green"><i class="ti ti-currency-rupee"></i></div>
+                        Keep selling price above cost to maintain a positive profit margin.
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon amber"><i class="ti ti-alert-triangle"></i></div>
+                        Stock below 5 units triggers a Low Stock alert on your dashboard.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    </form>
+
+</div>
+
+<script>
+function calcMargin() {
+    const cost   = parseFloat(document.getElementById('costPrice').value)  || 0;
+    const sell   = parseFloat(document.getElementById('sellPrice').value)   || 0;
+    const profit = sell - cost;
+    const margin = cost > 0 ? ((profit / cost) * 100).toFixed(1) : 0;
+    const isGood = profit >= 0;
+    const color  = isGood ? '#16a34a' : '#dc2626';
+
+    const set = (id, val, col) => {
+        const el = document.getElementById(id);
+        el.textContent = val;
+        el.style.color = col || '#1a1d2e';
+    };
+
+    set('previewCost',   cost && sell ? '₹ ' + cost.toFixed(2)   : '₹ —');
+    set('previewSell',   cost && sell ? '₹ ' + sell.toFixed(2)   : '₹ —');
+    set('previewProfit', cost && sell ? '₹ ' + profit.toFixed(2) : '₹ —', color);
+    set('previewMargin', cost && sell ? margin + ' %'             : '— %', color);
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

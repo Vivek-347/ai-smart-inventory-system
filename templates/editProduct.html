@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Product</title>
+</head>
+<body>
+
+<h2>Edit Product</h2>
+
+<form action="/updateProduct" method="post">
+
+    <input type="hidden"
+           name="pid"
+           value="{{ product[0] }}">
+
+    Product Name:
+    <input type="text"
+           name="product_name"
+           value="{{ product[1] }}">
+    <br><br>
+
+    Category:
+    <input type="text"
+           name="category"
+           value="{{ product[2] }}">
+    <br><br>
+
+    Cost Price:
+    <input type="number"
+           step="0.01"
+           name="cost_price"
+           value="{{ product[3] }}">
+    <br><br>
+
+    Selling Price:
+    <input type="number"
+           step="0.01"
+           name="selling_price"
+           value="{{ product[4] }}">
+    <br><br>
+
+    Stock:
+    <input type="number"
+           name="stock"
+           value="{{ product[5] }}">
+    <br><br>
+
+    <input type="submit"
+           value="Update Product">
+
+</form>
+
+</body>
+</html>
