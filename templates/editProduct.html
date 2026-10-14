@@ -1,54 +1,516 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Edit Product</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Product</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+:root { --brand: #4f6ef7; --brand2: #7c5dfa; --ink: #1a1d2e; --muted: #8a8fa8; --line: #eef0f8; --soft: #f8f9fc; --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --cyan: #06b6d4; }
+body { background: #f0f2f7; font-family: 'Inter', system-ui, sans-serif; color: var(--ink); min-height: 100vh; margin: 0; }
+
+/* ══ HEADER ══ */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+.page-title { font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+.page-sub { font-size: 12.5px; color: var(--muted); margin: 3px 0 0; }
+.logo-chip { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; font-size: 20px; box-shadow: 0 6px 16px rgba(79,110,247,.38); animation: floaty 3.5s ease-in-out infinite; }
+@keyframes floaty { 50% { transform: translateY(-3px) rotate(-4deg); } }
+.breadcrumb-nav { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 12px; color: var(--muted); }
+.breadcrumb-nav a { color: var(--brand); text-decoration: none; font-weight: 600; }
+.breadcrumb-nav a:hover { text-decoration: underline; }
+.breadcrumb-nav i { font-size: 13px; }
+
+/* ══ LAYOUT ══ */
+.form-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+
+/* ══ FORM PANEL ══ */
+.form-panel { position: relative; background: #fff; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.04); transition: box-shadow .2s; min-width: 0; }
+.form-panel:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+.form-panel::before { content: ''; display: block; height: 3px; background: linear-gradient(90deg, var(--brand), var(--brand2), var(--cyan)); }
+
+.status-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 14px 26px; border-bottom: 1px solid #f0f2f7; background: linear-gradient(90deg, #fafbff, #fff); }
+.status-bar .sb-left { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+.sb-ic { width: 32px; height: 32px; border-radius: 9px; background: #eef0ff; color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.dirty-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: #dcfce7; color: #15803d; transition: all .25s; }
+.dirty-chip i { font-size: 14px; }
+.dirty-chip.dirty { background: #fef3c7; color: #b45309; }
+.dirty-chip.dirty i { animation: pop .5s ease; }
+@keyframes pop { 50% { transform: scale(1.35); } }
+
+.panel-section { padding: 22px 26px; border-bottom: 1px solid #f0f2f7; position: relative; }
+.panel-section:last-of-type { border-bottom: none; }
+.panel-section::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; }
+.section-blue::before  { background: linear-gradient(180deg, #4f6ef7, #818cf8); }
+.section-green::before { background: linear-gradient(180deg, #16a34a, #22c55e); }
+.section-amber::before { background: linear-gradient(180deg, #d97706, #f59e0b); }
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #b0b4c8; margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+.s-icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+.s-icon i { font-size: 14px; }
+.s-icon.blue { background: #eef0ff; color: var(--brand); } .s-icon.green { background: #dcfce7; color: #16a34a; } .s-icon.amber { background: #fef3c7; color: #d97706; }
+
+/* ══ FORM CONTROLS ══ */
+.form-label { font-size: 12.5px; font-weight: 600; color: #3d4166; margin-bottom: 6px; display: block; }
+.form-group { margin-bottom: 16px; }
+.form-group:last-child { margin-bottom: 0; }
+.input-wrap { position: relative; }
+.input-wrap > i.lead { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #b3b7c9; font-size: 16px; pointer-events: none; transition: color .15s; }
+.input-wrap:focus-within > i.lead { color: var(--brand); }
+.input-wrap.has-icon .form-control { padding-left: 38px; }
+.input-wrap.has-prefix .form-control { padding-left: 28px; }
+.prefix-sym { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #8a8fa8; font-weight: 600; pointer-events: none; }
+
+.form-control { width: 100%; border: 1.5px solid #e8eaf2; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: var(--ink); background: #fafbfd; transition: all .2s; box-shadow: none !important; outline: none; font-family: inherit; }
+.form-control:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(79,110,247,.12) !important; }
+.form-control::placeholder { color: #c8ccde; }
+.input-wrap.changed .form-control { border-color: #f5c46b; background: #fffdf6; }
+.input-wrap.changed .form-control:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(245,158,11,.14) !important; }
+
+.was { display: none; align-items: center; gap: 5px; font-size: 11px; margin-top: 6px; color: #b45309; font-weight: 600; }
+.was.show { display: flex; animation: fadeIn .25s ease; }
+.was i { font-size: 13px; }
+.was button { margin-left: auto; border: none; background: #fef3c7; color: #b45309; font-size: 10.5px; font-weight: 700; border-radius: 6px; padding: 1px 8px; cursor: pointer; }
+.was button:hover { background: #f59e0b; color: #fff; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+.form-hint { font-size: 11px; color: #b0b4c8; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+.form-hint i { font-size: 12px; flex-shrink: 0; }
+.price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.price-row .form-group { margin-bottom: 0; }
+
+/* Stock stepper */
+.stepper { display: flex; align-items: stretch; gap: 8px; max-width: 260px; }
+.stepper .form-control { text-align: center; font-weight: 700; font-size: 15px; }
+.step-btn { width: 42px; flex-shrink: 0; border: 1.5px solid #e8eaf2; border-radius: 10px; background: #fff; color: #5a5f7d; font-size: 18px; cursor: pointer; transition: .15s; display: flex; align-items: center; justify-content: center; }
+.step-btn:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+.step-btn:active { transform: scale(.94); }
+.quick-add { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.q-chip { padding: 3px 11px; border-radius: 7px; font-size: 11.5px; font-weight: 600; border: 1.5px solid #e8eaf2; background: #fff; color: #5a5f7d; cursor: pointer; transition: .15s; font-family: inherit; }
+.q-chip:hover { border-color: var(--brand); color: var(--brand); background: #f0f3ff; }
+
+/* Warning */
+.warn-box { display: none; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 10px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 12.5px; line-height: 1.55; }
+.warn-box.show { display: flex; animation: fadeIn .25s ease; }
+.warn-box i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ══ ACTIONS ══ */
+.form-actions { padding: 16px 26px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; background: linear-gradient(90deg, #f8f9fc, #fafbff); border-top: 1px solid #f0f2f7; }
+.btn-submit { display: inline-flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden; background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; border: none; border-radius: 10px; padding: 11px 26px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all .2s; font-family: inherit; box-shadow: 0 6px 16px rgba(79,110,247,.35); }
+.btn-submit::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent); transform: skewX(-20deg); transition: left .55s; }
+.btn-submit:hover::after { left: 130%; }
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(79,110,247,.45); }
+.btn-submit:disabled { opacity: .75; cursor: wait; transform: none; }
+.btn-submit i { font-size: 17px; }
+.btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 7px; background: #fff; color: #5a5f7d; border: 1.5px solid #e8eaf2; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all .15s; text-decoration: none; font-family: inherit; }
+.btn-ghost:hover { background: #eef0ff; border-color: #c7d2ff; color: var(--brand); }
+.btn-cancel { background: #f0f2f7; border-color: transparent; color: #8a8fa8; margin-left: auto; }
+.btn-cancel:hover { background: #e4e7f0; color: var(--ink); border-color: transparent; }
+
+/* ══ SIDE PANEL ══ */
+.side-panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.info-card { background: #fff; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.04); transition: box-shadow .2s; }
+.info-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.07); }
+.info-card-header { padding: 14px 18px; border-bottom: 1px solid #f0f2f7; display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; background: linear-gradient(90deg, #fafbff, #fff); }
+.hdr-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+.hdr-icon i { font-size: 15px; }
+.hdr-icon.purple { background: #f3e8ff; color: #7c3aed; } .hdr-icon.blue { background: #eef0ff; color: var(--brand); } .hdr-icon.green { background: #dcfce7; color: #16a34a; }
+.info-card-body { padding: 16px 18px; }
+
+/* Product identity card */
+.id-card { display: flex; align-items: center; gap: 14px; }
+.id-avatar { width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 21px; font-weight: 800; background: linear-gradient(135deg, var(--brand), var(--brand2)); box-shadow: 0 8px 18px rgba(79,110,247,.35); transition: transform .25s; }
+.id-avatar.pop { animation: pop .3s ease; }
+.id-info { min-width: 0; }
+.id-name { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; line-height: 1.3; }
+.id-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+.id-badge { font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 20px; background: #f0f2f7; color: #5a5f7d; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.id-badge.pid { background: #eef0ff; color: var(--brand); font-weight: 700; }
+
+/* Preview */
+.margin-preview { background: linear-gradient(135deg, #f0f3ff, #fafbff); border: 1px solid #dde2ff; border-radius: 12px; padding: 14px 16px; }
+.mp-head { font-size: 9.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #b0b4c8; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.mp-live { display: inline-flex; align-items: center; gap: 4px; background: rgba(74,222,128,.12); color: #16a34a; font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 20px; border: 1px solid rgba(74,222,128,.25); }
+.mp-live span { width: 5px; height: 5px; background: #22c55e; border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 50% { opacity: .4; } }
+.margin-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #e0e4ff; font-size: 12px; color: #5a5f7d; }
+.margin-row:last-child { border-bottom: none; padding-bottom: 0; }
+.margin-row .val { font-weight: 700; font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.delta { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 20px; margin-left: 6px; }
+.delta.up { background: #dcfce7; color: #166534; } .delta.down { background: #fee2e2; color: #b42318; }
+
+.big-profit { text-align: center; padding: 14px 10px 4px; }
+.big-profit .lbl { font-size: 11px; color: var(--muted); font-weight: 500; }
+.big-profit .num { font-size: 28px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; margin-top: 2px; transition: color .2s; }
+
+.stock-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+.stock-ok { background: #dcfce7; color: #15803d; } .stock-low { background: #fef3c7; color: #b45309; } .stock-out { background: #fee2e2; color: #dc2626; }
+.stock-bar { height: 6px; background: #f0f2f7; border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.stock-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width .6s cubic-bezier(.2,.8,.2,1), background .3s; }
+
+.sv-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+.sv-row b { color: var(--ink); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 1280px) { .form-layout { grid-template-columns: minmax(0, 1fr) 290px; gap: 16px; } }
+
+@media (max-width: 1100px) {
+    .form-layout { grid-template-columns: minmax(0, 1fr); }
+    .side-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    .side-panel .info-card:first-child { grid-column: 1 / -1; }
+}
+
+@media (max-width: 767.98px) {
+    .panel-section { padding: 18px 18px 18px 20px; }
+    .status-bar, .form-actions { padding: 14px 18px; }
+    .side-panel { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 575.98px) {
+    .page-title { font-size: 18px; }
+    .logo-chip { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+    .page-sub { font-size: 12px; }
+    .price-row { grid-template-columns: 1fr; gap: 16px; }
+    .form-control { font-size: 16px; padding: 11px 13px; }
+    .input-wrap.has-icon .form-control { padding-left: 40px; }
+    .input-wrap.has-prefix .form-control { padding-left: 30px; }
+    .prefix-sym { font-size: 15px; }
+    .stepper { max-width: 100%; }
+    .step-btn { width: 48px; }
+    .form-actions { flex-direction: column-reverse; align-items: stretch; }
+    .btn-submit, .btn-ghost { width: 100%; padding: 12px 18px; }
+    .btn-cancel { margin-left: 0; }
+    .info-card-body { padding: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
-<h2>Edit Product</h2>
+{% include 'sidebar.html' %}
 
-<form action="/updateProduct" method="post">
+<div class="content">
 
-    <input type="hidden"
-           name="pid"
-           value="{{ product[0] }}">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-title"><span class="logo-chip"><i class="ti ti-edit"></i></span> Edit Product</div>
+            <div class="page-sub">Update the details, pricing and stock of this product</div>
+        </div>
+        <div class="breadcrumb-nav">
+            <a href="/dashboard">Dashboard</a>
+            <i class="ti ti-chevron-right"></i>
+            <a href="/productList">Product List</a>
+            <i class="ti ti-chevron-right"></i>
+            <span>Edit Product</span>
+        </div>
+    </div>
 
-    Product Name:
-    <input type="text"
-           name="product_name"
-           value="{{ product[1] }}">
-    <br><br>
+    <form action="/updateProduct" method="post" id="editForm">
 
-    Category:
-    <input type="text"
-           name="category"
-           value="{{ product[2] }}">
-    <br><br>
+        <input type="hidden" name="pid" value="{{ product[0] }}">
 
-    Cost Price:
-    <input type="number"
-           step="0.01"
-           name="cost_price"
-           value="{{ product[3] }}">
-    <br><br>
+        <div class="form-layout">
 
-    Selling Price:
-    <input type="number"
-           step="0.01"
-           name="selling_price"
-           value="{{ product[4] }}">
-    <br><br>
+            <!-- LEFT: Form -->
+            <div class="form-panel">
 
-    Stock:
-    <input type="number"
-           name="stock"
-           value="{{ product[5] }}">
-    <br><br>
+                <div class="status-bar">
+                    <div class="sb-left"><span class="sb-ic"><i class="ti ti-pencil"></i></span> Editing product #{{ product[0] }}</div>
+                    <span class="dirty-chip" id="dirtyChip"><i class="ti ti-circle-check"></i> <span id="dirtyText">No changes yet</span></span>
+                </div>
 
-    <input type="submit"
-           value="Update Product">
+                <!-- Product Info -->
+                <div class="panel-section section-blue">
+                    <div class="section-label"><div class="s-icon blue"><i class="ti ti-package"></i></div> Product Information</div>
 
-</form>
+                    <div class="form-group">
+                        <label class="form-label" for="fName">Product Name</label>
+                        <div class="input-wrap has-icon" data-field="name">
+                            <i class="ti ti-tag lead"></i>
+                            <input type="text" class="form-control" id="fName" name="product_name" value="{{ product[1] }}" placeholder="e.g. Wireless Headphones" required>
+                        </div>
+                        <div class="was" data-was="name"></div>
+                    </div>
 
+                    <div class="form-group">
+                        <label class="form-label" for="fCat">Category</label>
+                        <div class="input-wrap has-icon" data-field="cat">
+                            <i class="ti ti-category lead"></i>
+                            <input type="text" class="form-control" id="fCat" name="category" value="{{ product[2] }}" placeholder="e.g. Electronics, Clothing, Food..." required>
+                        </div>
+                        <div class="was" data-was="cat"></div>
+                        <div class="form-hint"><i class="ti ti-info-circle"></i> Groups products in reports and AI predictions.</div>
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="panel-section section-green">
+                    <div class="section-label"><div class="s-icon green"><i class="ti ti-currency-rupee"></i></div> Pricing</div>
+
+                    <div class="price-row">
+                        <div class="form-group">
+                            <label class="form-label" for="fCost">Cost Price</label>
+                            <div class="input-wrap has-prefix" data-field="cost">
+                                <span class="prefix-sym">₹</span>
+                                <input type="number" step="0.01" min="0" class="form-control" id="fCost" name="cost_price" value="{{ product[3] }}" placeholder="0.00" inputmode="decimal" required>
+                            </div>
+                            <div class="was" data-was="cost"></div>
+                            <div class="form-hint"><i class="ti ti-arrow-down-circle"></i> What you paid.</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="fSell">Selling Price</label>
+                            <div class="input-wrap has-prefix" data-field="sell">
+                                <span class="prefix-sym">₹</span>
+                                <input type="number" step="0.01" min="0" class="form-control" id="fSell" name="selling_price" value="{{ product[4] }}" placeholder="0.00" inputmode="decimal" required>
+                            </div>
+                            <div class="was" data-was="sell"></div>
+                            <div class="form-hint"><i class="ti ti-arrow-up-circle"></i> Customer pays.</div>
+                        </div>
+                    </div>
+
+                    <div class="warn-box" id="warnBox">
+                        <i class="ti ti-alert-triangle"></i>
+                        <div id="warnText"></div>
+                    </div>
+                </div>
+
+                <!-- Stock -->
+                <div class="panel-section section-amber">
+                    <div class="section-label"><div class="s-icon amber"><i class="ti ti-boxes"></i></div> Stock</div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="fStock">Stock Quantity</label>
+                        <div class="stepper" data-field="stock">
+                            <button type="button" class="step-btn" onclick="stepStock(-1)" aria-label="Decrease stock"><i class="ti ti-minus"></i></button>
+                            <div class="input-wrap" data-field="stock" style="flex:1;">
+                                <input type="number" min="0" class="form-control" id="fStock" name="stock" value="{{ product[5] }}" placeholder="0" inputmode="numeric" required>
+                            </div>
+                            <button type="button" class="step-btn" onclick="stepStock(1)" aria-label="Increase stock"><i class="ti ti-plus"></i></button>
+                        </div>
+                        <div class="quick-add">
+                            <button type="button" class="q-chip" onclick="stepStock(5)">+5</button>
+                            <button type="button" class="q-chip" onclick="stepStock(10)">+10</button>
+                            <button type="button" class="q-chip" onclick="stepStock(50)">+50</button>
+                            <button type="button" class="q-chip" onclick="stepStock(100)">+100</button>
+                        </div>
+                        <div class="was" data-was="stock"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" id="saveBtn"><i class="ti ti-device-floppy"></i> Update Product</button>
+                    <button type="button" class="btn-ghost" id="resetBtn"><i class="ti ti-restore"></i> Reset changes</button>
+                    <a href="/productList" class="btn-ghost btn-cancel"><i class="ti ti-arrow-left"></i> Cancel</a>
+                </div>
+
+            </div>
+
+            <!-- RIGHT: Live preview -->
+            <div class="side-panel">
+
+                <div class="info-card">
+                    <div class="info-card-header"><div class="hdr-icon blue"><i class="ti ti-id"></i></div> Product</div>
+                    <div class="info-card-body">
+                        <div class="id-card">
+                            <div class="id-avatar" id="idAvatar">?</div>
+                            <div class="id-info">
+                                <div class="id-name" id="idName">-</div>
+                                <div class="id-meta">
+                                    <span class="id-badge pid">#{{ product[0] }}</span>
+                                    <span class="id-badge" id="idCat">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-header"><div class="hdr-icon purple"><i class="ti ti-trending-up"></i></div> Profit Preview</div>
+                    <div class="info-card-body">
+                        <div class="big-profit">
+                            <div class="lbl">Profit per unit</div>
+                            <div class="num" id="bigProfit">₹0.00</div>
+                        </div>
+                        <div class="margin-preview" style="margin-top:12px;">
+                            <div class="mp-head">Live calculation <span class="mp-live"><span></span> Auto</span></div>
+                            <div class="margin-row"><span>Cost price</span><span class="val" id="pvCost">-</span></div>
+                            <div class="margin-row"><span>Selling price</span><span class="val" id="pvSell">-</span></div>
+                            <div class="margin-row"><span>Margin</span><span class="val" id="pvMargin">-</span></div>
+                            <div class="margin-row"><span>Markup on cost</span><span class="val" id="pvMarkup">-</span></div>
+                            <div class="margin-row"><span>vs. before</span><span class="val" id="pvDelta">No change</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-header"><div class="hdr-icon green"><i class="ti ti-boxes"></i></div> Stock status</div>
+                    <div class="info-card-body">
+                        <span class="stock-pill stock-ok" id="stockPill"><i class="ti ti-check"></i> In stock</span>
+                        <div class="stock-bar"><i id="stockBarFill"></i></div>
+                        <div class="sv-row"><span>Stock value (at selling price)</span><b id="stockValue">₹0</b></div>
+                        <div class="sv-row"><span>Potential profit on stock</span><b id="stockProfit">₹0</b></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+<script>
+const $ = function (id) { return document.getElementById(id); };
+const F = { name: $('fName'), cat: $('fCat'), cost: $('fCost'), sell: $('fSell'), stock: $('fStock') };
+const form = $('editForm');
+
+const inr = function (v) { return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+const inr0 = function (v) { return '₹' + Math.round(v).toLocaleString('en-IN'); };
+const numOf = function (el) { return parseFloat(el.value) || 0; };
+
+// Original values (as loaded from the server)
+const ORIG = {
+    name: F.name.defaultValue.trim(),
+    cat: F.cat.defaultValue.trim(),
+    cost: parseFloat(F.cost.defaultValue) || 0,
+    sell: parseFloat(F.sell.defaultValue) || 0,
+    stock: parseInt(F.stock.defaultValue, 10) || 0
+};
+const origProfit = ORIG.sell - ORIG.cost;
+
+const LABELS = { name: 'Name', cat: 'Category', cost: 'Cost', sell: 'Price', stock: 'Stock' };
+function origText(key) {
+    if (key === 'cost' || key === 'sell') return inr(ORIG[key]);
+    return String(ORIG[key]);
+}
+function isChanged(key) {
+    if (key === 'name' || key === 'cat') return F[key].value.trim() !== ORIG[key];
+    if (key === 'stock') return (parseInt(F.stock.value, 10) || 0) !== ORIG.stock || F.stock.value === '';
+    return Math.abs(numOf(F[key]) - ORIG[key]) > 0.0001;
+}
+
+let submitting = false;
+
+function update() {
+    // ── Changed-field highlighting ──
+    let changes = 0;
+    Object.keys(F).forEach(function (k) {
+        const ch = isChanged(k);
+        if (ch) changes++;
+        const wrap = document.querySelector('.input-wrap[data-field="' + k + '"]');
+        if (wrap) wrap.classList.toggle('changed', ch);
+        const was = document.querySelector('.was[data-was="' + k + '"]');
+        if (was) {
+            was.classList.toggle('show', ch);
+            if (ch) was.innerHTML = '<i class="ti ti-history"></i> Was: ' + escapeHtml(origText(k)) + '<button type="button" onclick="undoField(\'' + k + '\')">Undo</button>';
+        }
+    });
+
+    const chip = $('dirtyChip');
+    chip.classList.toggle('dirty', changes > 0);
+    chip.querySelector('i').className = changes > 0 ? 'ti ti-pencil-exclamation' : 'ti ti-circle-check';
+    $('dirtyText').textContent = changes > 0 ? changes + (changes === 1 ? ' unsaved change' : ' unsaved changes') : 'No changes yet';
+
+    // ── Profit preview ──
+    const cost = numOf(F.cost), sell = numOf(F.sell), stock = parseInt(F.stock.value, 10) || 0;
+    const profit = sell - cost;
+    const margin = sell > 0 ? profit / sell * 100 : 0;
+    const markup = cost > 0 ? profit / cost * 100 : 0;
+    const col = profit > 0 ? '#16a34a' : profit < 0 ? '#dc2626' : '#1a1d2e';
+
+    const big = $('bigProfit');
+    big.textContent = (profit < 0 ? '-' : '') + inr(Math.abs(profit));
+    big.style.color = col;
+
+    $('pvCost').textContent = inr(cost);
+    $('pvSell').textContent = inr(sell);
+    $('pvMargin').textContent = margin.toFixed(1) + ' %';
+    $('pvMargin').style.color = col;
+    $('pvMarkup').textContent = markup.toFixed(1) + ' %';
+    $('pvMarkup').style.color = col;
+
+    const diff = profit - origProfit;
+    const d = $('pvDelta');
+    if (Math.abs(diff) < 0.005) { d.innerHTML = 'No change'; }
+    else { d.innerHTML = '<span class="delta ' + (diff > 0 ? 'up' : 'down') + '"><i class="ti ti-arrow-' + (diff > 0 ? 'up' : 'down') + '-right" style="transform:rotate(' + (diff > 0 ? '-45' : '45') + 'deg);font-size:11px;"></i>' + (diff > 0 ? '+' : '-') + inr(Math.abs(diff)) + '</span>'; }
+
+    // ── Warning when selling below cost ──
+    const warn = $('warnBox');
+    if (cost > 0 && sell > 0 && sell < cost) {
+        $('warnText').innerHTML = '<b>Selling price is below cost.</b> You would lose ' + inr(cost - sell) + ' on every unit sold.';
+        warn.classList.add('show');
+    } else if (cost > 0 && sell > 0 && margin < 10) {
+        $('warnText').innerHTML = '<b>Very thin margin (' + margin.toFixed(1) + '%).</b> Consider a slightly higher selling price.';
+        warn.classList.add('show');
+    } else { warn.classList.remove('show'); }
+
+    // ── Stock status ──
+    const pill = $('stockPill'), bar = $('stockBarFill');
+    let w, bg;
+    if (stock === 0) { pill.className = 'stock-pill stock-out'; pill.innerHTML = '<i class="ti ti-alert-circle"></i> Out of stock'; w = 4; bg = '#ef4444'; }
+    else if (stock <= 5) { pill.className = 'stock-pill stock-low'; pill.innerHTML = '<i class="ti ti-alert-triangle"></i> ' + stock + ' · Low stock'; w = stock * 8; bg = 'linear-gradient(90deg,#d97706,#f59e0b)'; }
+    else { pill.className = 'stock-pill stock-ok'; pill.innerHTML = '<i class="ti ti-check"></i> ' + stock + ' in stock'; w = Math.min(stock * 2, 100); bg = 'linear-gradient(90deg,#16a34a,#22c55e)'; }
+    bar.style.width = w + '%'; bar.style.background = bg;
+    $('stockValue').textContent = inr0(sell * stock);
+    $('stockProfit').textContent = (profit < 0 ? '-' : '') + inr0(Math.abs(profit * stock));
+    $('stockProfit').style.color = col;
+
+    // ── Identity card ──
+    const nm = F.name.value.trim();
+    const letter = nm ? nm[0].toUpperCase() : '?';
+    const av = $('idAvatar');
+    if (av.textContent !== letter) { av.textContent = letter; av.classList.remove('pop'); void av.offsetWidth; av.classList.add('pop'); }
+    $('idName').textContent = nm || 'Untitled product';
+    $('idCat').textContent = F.cat.value.trim() || 'No category';
+
+    return changes;
+}
+
+function escapeHtml(v) {
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function undoField(k) {
+    F[k].value = F[k].defaultValue;
+    update();
+}
+
+function stepStock(delta) {
+    const cur = parseInt(F.stock.value, 10) || 0;
+    F.stock.value = Math.max(0, cur + delta);
+    update();
+}
+
+Object.keys(F).forEach(function (k) { F[k].addEventListener('input', update); });
+
+// Reset all changes
+$('resetBtn').addEventListener('click', function () {
+    form.reset();
+    update();
+});
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', function (e) {
+    if (!submitting && update() > 0) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// Prevent double submit + loading state
+form.addEventListener('submit', function () {
+    submitting = true;
+    const b = $('saveBtn');
+    setTimeout(function () {
+        b.disabled = true;
+        b.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+    }, 0);
+});
+
+update();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

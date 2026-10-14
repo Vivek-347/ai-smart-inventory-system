@@ -1,10 +1,14 @@
+import os
 import mysql.connector
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def getConnection():
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="root",
-        database="inventory_ai"
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
     )
     return conn
