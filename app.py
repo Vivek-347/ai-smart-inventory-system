@@ -6,6 +6,7 @@ from reportlab.pdfgen import canvas
 from datetime import datetime, timedelta
 from flask import send_file
 from reportlab.pdfgen import canvas
+
 from ai import ask_ai
 from flask import jsonify
 from business_context import get_business_context
@@ -5630,6 +5631,80 @@ def changePassword():
     finally:
         cursor.close()
         conn.close()
+
+# ==========================
+# ANDROID LOGIN API
+# ==========================
+@app.route('/api/login', methods=['POST'])
+def android_login():
+
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "Invalid request data"
+        }), 400
+
+    email = data.get("email", "").strip()
+    password = data.get("password", "")
+
+    if not email or not password:
+        return jsonify({
+            "success": False,
+            "message": "Email and password are required"
+        }), 400
+
+    conn = None
+    cursor = None
+
+    try:
+        conn = getConnection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT * FROM users
+            WHERE email = %s AND password = %s
+            """,
+            (email, password)
+        )
+
+        user = cursor.fetchone()
+
+        if user:
+            return jsonify({
+                "success": True,
+                "message": "Login successful",
+                "user": {
+                    "id": user[0],
+                    "name": user[1],
+                    "email": email
+                }
+            }), 200
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid email or password"
+        }), 401
+
+    except Exception as e:
+        app.logger.exception("Android login API error")
+
+        return jsonify({
+            "success": False,
+            "message": "Server error. Please try again."
+        }), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+
+
 
 
 # ==========================
