@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, flash
 from database import getConnection
 from functools import wraps
 from flask import send_file
@@ -78,76 +78,92 @@ def register():
 @app.route('/register', methods=['POST'])
 def registerUser():
 
-    name = request.form["name"]
-
-    business_name = request.form["business_name"]
-
-    gst_number = request.form["gst_number"]
-
-    phone = request.form["phone"]
-
-    email = request.form["email"]
-
-    address = request.form["address"]
-
-    city = request.form["city"]
-
-    state = request.form["state"]
-
-    pincode = request.form["pincode"]
-
-    invoice_prefix = request.form["invoice_prefix"]
-
+    name = request.form["name"].strip()
+    business_name = request.form["business_name"].strip()
+    gst_number = request.form["gst_number"].strip()
+    phone = request.form["phone"].strip()
+    email = request.form["email"].strip()
+    address = request.form["address"].strip()
+    city = request.form["city"].strip()
+    state = request.form["state"].strip()
+    pincode = request.form["pincode"].strip()
+    invoice_prefix = request.form["invoice_prefix"].strip()
     password = request.form["password"]
 
-    conn = getConnection()
-    cursor = conn.cursor()
+    conn = None
+    cursor = None
 
-    sql = """
-    INSERT INTO users
-    (
-    name,
-    business_name,
-    gst_number,
-    phone,
-    email,
-    address,
-    city,
-    state,
-    pincode,
-    invoice_prefix,
-    password
-    )
-    VALUES
-    (
-    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
-    )
-    """
+    try:
+        conn = getConnection()
+        cursor = conn.cursor()
 
-    cursor.execute(
-    sql,
-    (
-        name,
-        business_name,
-        gst_number,
-        phone,
-        email,
-        address,
-        city,
-        state,
-        pincode,
-        invoice_prefix,
-        password
-    )
-)
+        # Check whether email already exists
+        cursor.execute(
+            "SELECT * FROM users WHERE email = %s",
+            (email,)
+        )
 
-    conn.commit()
+        existing_user = cursor.fetchone()
 
-    cursor.close()
-    conn.close()
+        if existing_user:
+            flash("This email is already registered. Please login.", "error")
+            return redirect("/register")
 
-    return "Registration Successful"
+        sql = """
+        INSERT INTO users
+        (
+            name,
+            business_name,
+            gst_number,
+            phone,
+            email,
+            address,
+            city,
+            state,
+            pincode,
+            invoice_prefix,
+            password
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
 
+        cursor.execute(
+            sql,
+            (
+                name,
+                business_name,
+                gst_number,
+                phone,
+                email,
+                address,
+                city,
+                state,
+                pincode,
+                invoice_prefix,
+                password
+            )
+        )
+
+        conn.commit()
+
+        flash("Registration successful! Please login.", "success")
+        return redirect("/login")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        print("Registration Error:", e)
+
+        flash("Registration failed. Please check your details and try again.", "error")
+        return redirect("/register")
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
 
 # ==========================
 # LOGIN PAGE
@@ -163,38 +179,46 @@ def login():
 @app.route('/login', methods=['POST'])
 def loginUser():
 
-    email = request.form['email']
+    email = request.form['email'].strip()
     password = request.form['password']
 
-    conn = getConnection()
-    cursor = conn.cursor()
+    conn = None
+    cursor = None
 
-    sql = """
-    SELECT * FROM users
-    WHERE email=%s AND password=%s
-    """
+    try:
+        conn = getConnection()
+        cursor = conn.cursor()
 
-    cursor.execute(sql, (email, password))
+        sql = """
+        SELECT * FROM users
+        WHERE email = %s AND password = %s
+        """
 
-    user = cursor.fetchone()
+        cursor.execute(sql, (email, password))
+        user = cursor.fetchone()
 
-    cursor.close()
-    conn.close()
+        if user:
+            session["uid"] = user[0]
+            session["user"] = email
+            session["name"] = user[1]
 
-    if user:
+            return redirect("/dashboard")
 
-        session["uid"] = user[0]
+        flash("Invalid email or password. Please try again.", "error")
+        return redirect("/login")
 
-        session["user"] = email
+    except Exception as e:
+        print("Login Error:", e)
 
-        session["name"] = user[1]   # Full Name
+        flash("Something went wrong. Please try again.", "error")
+        return redirect("/login")
 
-        return redirect("/dashboard")
+    finally:
+        if cursor:
+            cursor.close()
 
-    else:
-        return "Invalid Email or Password"
-
-
+        if conn:
+            conn.close()
 # ==========================
 # DASHBOARD
 # ==========================
