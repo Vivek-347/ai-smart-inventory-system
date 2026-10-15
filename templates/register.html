@@ -65,7 +65,7 @@ body {
     margin: 0 0 10px; line-height: 1.35;
 }
 
-.auth-left > p {
+.auth-left p.lead-text {
     font-size: 12.5px; color: rgba(255,255,255,0.42);
     line-height: 1.7; margin: 0 0 28px;
 }
@@ -91,6 +91,7 @@ body {
     padding: 32px 36px;
     overflow-y: auto;
     max-height: 92vh;
+    min-width: 0;
 }
 
 .auth-right::-webkit-scrollbar { width: 4px; }
@@ -116,12 +117,12 @@ body {
 
 .form-section i { font-size: 13px; color: #4f6ef7; }
 
-/* Two-column grid */
+/* Grids */
 .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 .form-full   { grid-column: 1 / -1; }
 
-.form-group { display: flex; flex-direction: column; }
+.form-group { display: flex; flex-direction: column; min-width: 0; }
 
 .form-label {
     font-size: 11.5px; font-weight: 500;
@@ -137,7 +138,6 @@ body {
     pointer-events: none; z-index: 1;
 }
 
-/* For textarea, align icon to top */
 .input-wrap.textarea-wrap .input-icon {
     top: 12px; transform: none;
 }
@@ -215,6 +215,93 @@ textarea.form-control {
 .login-link a { color: #4f6ef7; font-weight: 600; text-decoration: none; }
 .login-link a:hover { text-decoration: underline; }
 
+/* ═════════ Responsive ═════════ */
+
+/* Tablet & small laptop: slimmer side panel */
+@media (max-width: 991.98px) {
+    .auth-wrapper { grid-template-columns: 260px 1fr; }
+    .auth-left { padding: 32px 22px; }
+    .auth-right { padding: 28px 26px; }
+}
+
+/* Tablet portrait / large phones: stack panels */
+@media (max-width: 767.98px) {
+    body {
+        align-items: flex-start;
+        padding: 16px;
+    }
+
+    .auth-wrapper {
+        grid-template-columns: 1fr;
+        width: 100%;
+        max-width: 560px;
+        margin: 0 auto;
+    }
+
+    /* Left panel becomes a compact header banner */
+    .auth-left { padding: 24px 22px; }
+    .brand { margin-bottom: 18px; }
+    .auth-left h2 { font-size: 18px; }
+    .auth-left p.lead-text { margin-bottom: 16px; }
+
+    .feature-list {
+        flex: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+    }
+
+    .auth-left-footer { display: none; }
+
+    .auth-right {
+        max-height: none;
+        overflow-y: visible;
+        padding: 26px 22px;
+    }
+}
+
+/* Phones: single-column form */
+@media (max-width: 575.98px) {
+    body { padding: 0; background: #fff; }
+
+    .auth-wrapper {
+        border-radius: 0;
+        box-shadow: none;
+        max-width: 100%;
+        min-height: 100vh;
+    }
+
+    .auth-left { padding: 22px 18px; }
+    .auth-right { padding: 22px 18px 28px; }
+
+    .form-grid-2,
+    .form-grid-3 { grid-template-columns: 1fr; }
+
+    /* City / State / Pincode: keep City full width, State + Pincode side by side */
+    .form-grid-3 { grid-template-columns: 1fr 1fr; }
+    .form-grid-3 .form-group:first-child { grid-column: 1 / -1; }
+
+    /* 16px inputs stop iOS Safari from zooming on focus */
+    .form-control { font-size: 16px; padding-top: 11px; padding-bottom: 11px; }
+    .form-label { font-size: 12.5px; }
+    .input-icon, .pwd-toggle { font-size: 18px; }
+
+    .btn-register { padding: 14px; font-size: 15px; }
+    .auth-right h3 { font-size: 18px; }
+}
+
+/* Very small phones */
+@media (max-width: 359.98px) {
+    .form-grid-3 { grid-template-columns: 1fr; }
+    .feature-list { flex-direction: column; }
+}
+
+/* Short landscape screens: let the page scroll naturally */
+@media (max-height: 560px) and (min-width: 768px) {
+    body { align-items: flex-start; }
+    .auth-right { max-height: none; }
+}
+
 </style>
 </head>
 <body>
@@ -233,7 +320,7 @@ textarea.form-control {
             </div>
 
             <h2>Start managing smarter today</h2>
-            <p>Create your free account and get full access to AI-powered inventory, billing, and analytics.</p>
+            <p class="lead-text">Create your free account and get full access to AI-powered inventory, billing, and analytics.</p>
 
             <div class="feature-list">
                 <div class="feature-item"><i class="ti ti-circle-check-filled"></i> AI stock predictions</div>
@@ -261,28 +348,28 @@ textarea.form-control {
                     <label class="form-label">Owner Name</label>
                     <div class="input-wrap">
                         <i class="ti ti-user input-icon"></i>
-                        <input type="text" name="name" class="form-control" placeholder="Owner Name" required>
+                        <input type="text" name="name" class="form-control" placeholder="Owner Name" autocomplete="name" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Business Name</label>
                     <div class="input-wrap">
                         <i class="ti ti-building-store input-icon"></i>
-                        <input type="text" name="business_name" class="form-control" placeholder="Business Name" required>
+                        <input type="text" name="business_name" class="form-control" placeholder="Business Name" autocomplete="organization" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Business Phone</label>
                     <div class="input-wrap">
                         <i class="ti ti-phone input-icon"></i>
-                        <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+                        <input type="tel" name="phone" class="form-control" placeholder="Phone Number" autocomplete="tel" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Business Email</label>
                     <div class="input-wrap">
                         <i class="ti ti-mail input-icon"></i>
-                        <input type="email" name="email" class="form-control" placeholder="business@example.com" required>
+                        <input type="email" name="email" class="form-control" placeholder="business@example.com" autocomplete="email" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -307,7 +394,7 @@ textarea.form-control {
                 <label class="form-label">Street Address</label>
                 <div class="input-wrap textarea-wrap">
                     <i class="ti ti-map-pin input-icon"></i>
-                    <textarea name="address" class="form-control" rows="2" placeholder="Street, Area..." required></textarea>
+                    <textarea name="address" class="form-control" rows="2" placeholder="Street, Area..." autocomplete="street-address" required></textarea>
                 </div>
             </div>
             <div class="form-grid-3">
@@ -315,21 +402,21 @@ textarea.form-control {
                     <label class="form-label">City</label>
                     <div class="input-wrap">
                         <i class="ti ti-building input-icon"></i>
-                        <input type="text" name="city" class="form-control" placeholder="City" required>
+                        <input type="text" name="city" class="form-control" placeholder="City" autocomplete="address-level2" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">State</label>
                     <div class="input-wrap">
                         <i class="ti ti-map input-icon"></i>
-                        <input type="text" name="state" class="form-control" placeholder="State" required>
+                        <input type="text" name="state" class="form-control" placeholder="State" autocomplete="address-level1" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Pincode</label>
                     <div class="input-wrap">
                         <i class="ti ti-map-pin-code input-icon"></i>
-                        <input type="text" name="pincode" class="form-control" placeholder="Pincode" required>
+                        <input type="text" name="pincode" class="form-control" placeholder="Pincode" inputmode="numeric" autocomplete="postal-code" required>
                     </div>
                 </div>
             </div>
@@ -341,7 +428,7 @@ textarea.form-control {
                 <div class="input-wrap">
                     <i class="ti ti-lock input-icon"></i>
                     <input type="password" name="password" id="passwordField"
-                        class="form-control" placeholder="Create a strong password" required>
+                        class="form-control" placeholder="Create a strong password" autocomplete="new-password" required>
                     <i class="ti ti-eye pwd-toggle" id="togglePwd" onclick="togglePassword()"></i>
                 </div>
             </div>

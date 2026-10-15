@@ -19,89 +19,80 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 20px;
 }
 
+/* ── Wrapper ── */
 .auth-wrapper {
     display: grid;
-    grid-template-columns: 360px 400px;
+    grid-template-columns: 340px 400px;
     border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    width: 100%;
+    max-width: 740px;
 }
 
-/* ── Left Panel ── */
-
+/* ══════════════════════════
+   LEFT PANEL
+══════════════════════════ */
 .auth-left {
     background: linear-gradient(160deg, #0f1221 0%, #1e2347 100%);
-    padding: 44px 32px;
+    padding: 40px 30px;
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative orb */
+.auth-left::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(79,110,247,0.18) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    margin-bottom: 44px;
+    display: flex; align-items: center; gap: 11px; margin-bottom: 36px;
+    position: relative; z-index: 1;
 }
 
 .brand-icon {
-    width: 38px;
-    height: 38px;
-    background: #4f6ef7;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 38px; height: 38px; background: #4f6ef7;
+    border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: 0 4px 12px rgba(79,110,247,0.4);
 }
 
 .brand-icon i { font-size: 20px; color: #fff; }
-
 .brand-name  { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.1; }
 .brand-sub   { font-size: 10.5px; color: rgba(255,255,255,0.35); }
 
 .auth-left h2 {
-    font-size: 21px;
-    font-weight: 700;
-    color: #fff;
-    margin: 0 0 10px;
-    line-height: 1.35;
+    font-size: 20px; font-weight: 700; color: #fff;
+    margin: 0 0 10px; line-height: 1.35; position: relative; z-index: 1;
 }
 
 .auth-left > p {
-    font-size: 12.5px;
-    color: rgba(255,255,255,0.42);
-    line-height: 1.7;
-    margin: 0 0 32px;
+    font-size: 12.5px; color: rgba(255,255,255,0.42);
+    line-height: 1.7; margin: 0 0 28px; position: relative; z-index: 1;
 }
 
-.stat-pills {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
-}
+.stat-pills { display: flex; flex-direction: column; gap: 10px; flex: 1; position: relative; z-index: 1; }
 
 .stat-pill {
-    display: flex;
-    align-items: center;
-    gap: 11px;
+    display: flex; align-items: center; gap: 11px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 9px;
-    padding: 11px 13px;
+    border-radius: 9px; padding: 11px 13px; transition: background 0.15s;
 }
 
+.stat-pill:hover { background: rgba(255,255,255,0.08); }
+
 .pill-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 32px; height: 32px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
 .pill-icon i { font-size: 16px; }
@@ -112,142 +103,99 @@ body {
 .pill-title { font-size: 12px; font-weight: 600; color: #fff; margin-bottom: 1px; }
 .pill-sub   { font-size: 10.5px; color: rgba(255,255,255,0.35); }
 
-.auth-left-footer {
-    margin-top: 32px;
-    font-size: 10.5px;
-    color: rgba(255,255,255,0.2);
+.auth-left-footer { margin-top: 28px; font-size: 10.5px; color: rgba(255,255,255,0.2); }
+
+/* Mobile brand bar (hidden on desktop) */
+.mobile-brand {
+    display: none;
+    background: linear-gradient(135deg, #0f1221, #1e2347);
+    padding: 16px 20px;
+    align-items: center; gap: 10px;
 }
 
-/* ── Right Panel ── */
+.mobile-brand .brand-icon { width: 32px; height: 32px; }
+.mobile-brand .brand-icon i { font-size: 17px; }
+.mobile-brand .brand-name  { font-size: 14px; }
+.mobile-brand .brand-sub   { font-size: 10px; }
 
+/* ══════════════════════════
+   RIGHT PANEL
+══════════════════════════ */
 .auth-right {
     background: #fff;
-    padding: 44px 36px;
+    padding: 40px 34px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
 .welcome-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #eef0ff;
-    color: #4f6ef7;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-bottom: 14px;
-    letter-spacing: 0.02em;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #eef0ff; color: #4f6ef7;
+    font-size: 11px; font-weight: 600;
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 14px; letter-spacing: 0.02em;
+    width: fit-content;
 }
 
 .welcome-chip i { font-size: 13px; }
 
-.auth-right h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1a1d2e;
-    margin: 0 0 5px;
-}
+.auth-right h3 { font-size: 20px; font-weight: 700; color: #1a1d2e; margin: 0 0 5px; }
+.auth-right .sub { font-size: 12.5px; color: #8a8fa8; margin: 0 0 24px; }
 
-.auth-right .sub {
-    font-size: 12.5px;
-    color: #8a8fa8;
-    margin: 0 0 28px;
-}
-
-/* Flash errors */
+/* Flash */
 .flash-msg {
-    background: #fee2e2;
-    border: 1px solid #fecaca;
-    color: #dc2626;
-    border-radius: 9px;
-    padding: 9px 13px;
-    font-size: 12.5px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    margin-bottom: 16px;
+    background: #fee2e2; border: 1px solid #fecaca;
+    color: #dc2626; border-radius: 9px;
+    padding: 9px 13px; font-size: 12.5px;
+    display: flex; align-items: center; gap: 7px; margin-bottom: 16px;
 }
 
 .flash-msg i { font-size: 15px; flex-shrink: 0; }
 
+/* Form */
 .form-label {
-    font-size: 12.5px;
-    font-weight: 500;
-    color: #3d4166;
-    margin-bottom: 6px;
-    display: block;
+    font-size: 12.5px; font-weight: 500;
+    color: #3d4166; margin-bottom: 6px; display: block;
 }
 
-.input-wrap {
-    position: relative;
-    margin-bottom: 16px;
-}
+.input-wrap { position: relative; margin-bottom: 16px; }
 
 .input-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #c0c4d8;
-    font-size: 17px;
-    pointer-events: none;
-    z-index: 1;
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%); color: #c0c4d8;
+    font-size: 17px; pointer-events: none; z-index: 1;
 }
 
 .form-control {
-    width: 100%;
-    border: 1.5px solid #e8eaf2;
-    border-radius: 9px;
-    padding: 10px 14px 10px 38px;
-    font-size: 13px;
-    color: #1a1d2e;
-    background: #fafbfd;
-    transition: all 0.15s;
-    box-shadow: none !important;
-    outline: none;
-    font-family: 'Inter', sans-serif;
+    width: 100%; border: 1.5px solid #e8eaf2;
+    border-radius: 9px; padding: 11px 14px 11px 38px;
+    font-size: 13px; color: #1a1d2e; background: #fafbfd;
+    transition: all 0.15s; box-shadow: none !important;
+    outline: none; font-family: 'Inter', sans-serif;
 }
 
 .form-control:focus {
-    border-color: #4f6ef7;
-    background: #fff;
+    border-color: #4f6ef7; background: #fff;
+    box-shadow: 0 0 0 3px rgba(79,110,247,0.1) !important;
 }
 
 .form-control::placeholder { color: #c8ccde; }
 
 .pwd-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #c0c4d8;
-    cursor: pointer;
-    font-size: 17px;
-    z-index: 1;
-    transition: color 0.15s;
+    position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%); color: #c0c4d8;
+    cursor: pointer; font-size: 17px; z-index: 1; transition: color 0.15s;
 }
 
 .pwd-toggle:hover { color: #4f6ef7; }
 
 .form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-size: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; font-size: 12px;
 }
 
-.remember {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #5a5f7d;
-    cursor: pointer;
-}
-
+.remember { display: flex; align-items: center; gap: 6px; color: #5a5f7d; cursor: pointer; }
 .remember input { accent-color: #4f6ef7; cursor: pointer; }
 
 .forgot { color: #4f6ef7; font-weight: 500; text-decoration: none; font-size: 12px; }
@@ -255,68 +203,98 @@ body {
 
 .btn-login {
     width: 100%;
-    background: #4f6ef7;
-    color: #fff;
-    border: none;
-    border-radius: 9px;
-    padding: 12px;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    background: linear-gradient(135deg, #4f6ef7, #7c5dfa);
+    color: #fff; border: none; border-radius: 9px;
+    padding: 12px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
     font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 14px rgba(79,110,247,0.3);
 }
 
 .btn-login:hover {
-    background: #3d5ce5;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(79,110,247,0.32);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,110,247,0.42);
 }
 
 .btn-login i { font-size: 17px; }
 
 .divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 18px 0;
-    font-size: 11.5px;
-    color: #c8ccde;
+    display: flex; align-items: center; gap: 10px;
+    margin: 18px 0; font-size: 11.5px; color: #c8ccde;
 }
 
-.divider::before,
-.divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #eef0f8;
+.divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: #eef0f8;
 }
 
-.register-link {
-    text-align: center;
-    font-size: 12.5px;
-    color: #8a8fa8;
-}
-
-.register-link a {
-    color: #4f6ef7;
-    font-weight: 600;
-    text-decoration: none;
-}
-
+.register-link { text-align: center; font-size: 12.5px; color: #8a8fa8; }
+.register-link a { color: #4f6ef7; font-weight: 600; text-decoration: none; }
 .register-link a:hover { text-decoration: underline; }
+
+/* ══════════════════════════
+   RESPONSIVE
+══════════════════════════ */
+
+/* Medium: tighten columns */
+@media (max-width: 780px) {
+    .auth-wrapper { grid-template-columns: 280px 1fr; }
+    .auth-left  { padding: 32px 22px; }
+    .auth-right { padding: 32px 24px; }
+    .auth-left h2  { font-size: 17px; }
+    .auth-right h3 { font-size: 18px; }
+}
+
+/* Mobile: stack vertically, hide left panel, show mobile brand */
+@media (max-width: 620px) {
+    body { padding: 0; align-items: stretch; background: #fff; }
+
+    .auth-wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+    }
+
+    /* Hide full left panel */
+    .auth-left { display: none; }
+
+    /* Show compact brand bar */
+    .mobile-brand { display: flex; }
+
+    .auth-right {
+        padding: 28px 24px 36px;
+        justify-content: flex-start;
+    }
+
+    .welcome-chip { margin-top: 4px; }
+
+    .form-options { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+
+/* Small phones */
+@media (max-width: 360px) {
+    .auth-right { padding: 22px 18px 30px; }
+    .auth-right h3 { font-size: 16px; }
+}
 
 </style>
 </head>
 <body>
 
+<!-- Mobile brand bar (only visible on mobile) -->
+<div class="mobile-brand">
+    <div class="brand-icon"><i class="ti ti-brain"></i></div>
+    <div>
+        <div class="brand-name" style="color:#fff;">AI Inventory</div>
+        <div class="brand-sub">Smart Business Suite</div>
+    </div>
+</div>
+
 <div class="auth-wrapper">
 
-    <!-- Left -->
+    <!-- Left Panel -->
     <div class="auth-left">
         <div>
             <div class="brand">
@@ -354,11 +332,10 @@ body {
                 </div>
             </div>
         </div>
-
         <div class="auth-left-footer">© 2026 AI Inventory · Smart Business Suite</div>
     </div>
 
-    <!-- Right -->
+    <!-- Right Panel -->
     <div class="auth-right">
 
         <div class="welcome-chip">
