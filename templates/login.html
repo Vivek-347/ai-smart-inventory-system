@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1221">
 <title>Login — AI Inventory</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
@@ -12,14 +13,18 @@
 
 * { box-sizing: border-box; }
 
+html, body { min-height: 100%; }
+
 body {
     background: #f0f2f7;
     font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    -webkit-text-size-adjust: 100%;
 }
 
 /* ── Wrapper ── */
@@ -34,7 +39,7 @@ body {
 }
 
 /* ══════════════════════════
-   LEFT PANEL
+   LEFT PANEL (desktop / tablet)
 ══════════════════════════ */
 .auth-left {
     background: linear-gradient(160deg, #0f1221 0%, #1e2347 100%);
@@ -45,7 +50,6 @@ body {
     overflow: hidden;
 }
 
-/* Decorative orb */
 .auth-left::before {
     content: '';
     position: absolute; top: -60px; right: -60px;
@@ -74,7 +78,7 @@ body {
     margin: 0 0 10px; line-height: 1.35; position: relative; z-index: 1;
 }
 
-.auth-left > p {
+.auth-left > div > p {
     font-size: 12.5px; color: rgba(255,255,255,0.42);
     line-height: 1.7; margin: 0 0 28px; position: relative; z-index: 1;
 }
@@ -105,18 +109,10 @@ body {
 
 .auth-left-footer { margin-top: 28px; font-size: 10.5px; color: rgba(255,255,255,0.2); }
 
-/* Mobile brand bar (hidden on desktop) */
-.mobile-brand {
-    display: none;
-    background: linear-gradient(135deg, #0f1221, #1e2347);
-    padding: 16px 20px;
-    align-items: center; gap: 10px;
-}
-
-.mobile-brand .brand-icon { width: 32px; height: 32px; }
-.mobile-brand .brand-icon i { font-size: 17px; }
-.mobile-brand .brand-name  { font-size: 14px; }
-.mobile-brand .brand-sub   { font-size: 10px; }
+/* ══════════════════════════
+   MOBILE HERO (hidden on desktop)
+══════════════════════════ */
+.mobile-hero { display: none; }
 
 /* ══════════════════════════
    RIGHT PANEL
@@ -183,12 +179,16 @@ body {
 .form-control::placeholder { color: #c8ccde; }
 
 .pwd-toggle {
-    position: absolute; right: 12px; top: 50%;
-    transform: translateY(-50%); color: #c0c4d8;
-    cursor: pointer; font-size: 17px; z-index: 1; transition: color 0.15s;
+    position: absolute; right: 4px; top: 50%;
+    transform: translateY(-50%);
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: 0; padding: 0;
+    color: #c0c4d8; cursor: pointer; font-size: 17px; z-index: 1;
+    transition: color 0.15s; border-radius: 8px;
 }
 
-.pwd-toggle:hover { color: #4f6ef7; }
+.pwd-toggle:hover, .pwd-toggle:focus-visible { color: #4f6ef7; outline: none; }
 
 .form-options {
     display: flex; justify-content: space-between; align-items: center;
@@ -217,6 +217,8 @@ body {
     box-shadow: 0 8px 24px rgba(79,110,247,0.42);
 }
 
+.btn-login:active { transform: scale(0.98); }
+
 .btn-login i { font-size: 17px; }
 
 .divider {
@@ -236,7 +238,7 @@ body {
    RESPONSIVE
 ══════════════════════════ */
 
-/* Medium: tighten columns */
+/* Tablet: tighten columns */
 @media (max-width: 780px) {
     .auth-wrapper { grid-template-columns: 280px 1fr; }
     .auth-left  { padding: 32px 22px; }
@@ -245,56 +247,204 @@ body {
     .auth-right h3 { font-size: 18px; }
 }
 
-/* Mobile: stack vertically, hide left panel, show mobile brand */
+/* ══════════════════════════
+   MOBILE — app-style layout
+   Dark hero on top, white sheet slides up over it
+══════════════════════════ */
 @media (max-width: 620px) {
-    body { padding: 0; align-items: stretch; background: #fff; }
+
+    body {
+        padding: 0;
+        display: block;
+        background: #0f1221;
+    }
 
     .auth-wrapper {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+        display: flex;
+        flex-direction: column;
+        max-width: none;
+        min-height: 100vh;
+        min-height: 100dvh;
         border-radius: 0;
         box-shadow: none;
-        min-height: 100vh;
+        background: #0f1221;
     }
 
-    /* Hide full left panel */
     .auth-left { display: none; }
 
-    /* Show compact brand bar */
-    .mobile-brand { display: flex; }
-
-    .auth-right {
-        padding: 28px 24px 36px;
-        justify-content: flex-start;
+    /* Hero */
+    .mobile-hero {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(160deg, #0f1221 0%, #1e2347 100%);
+        padding: calc(28px + env(safe-area-inset-top, 0px)) 24px 64px;
     }
 
-    .welcome-chip { margin-top: 4px; }
+    .mobile-hero::before {
+        content: '';
+        position: absolute; top: -70px; right: -70px;
+        width: 240px; height: 240px;
+        background: radial-gradient(circle, rgba(79,110,247,0.35) 0%, transparent 70%);
+        pointer-events: none;
+    }
 
-    .form-options { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .mobile-hero::after {
+        content: '';
+        position: absolute; bottom: -90px; left: -60px;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(124,93,250,0.22) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .mobile-hero .brand {
+        margin-bottom: 22px;
+    }
+
+    .mobile-hero .brand-icon { width: 42px; height: 42px; border-radius: 11px; }
+    .mobile-hero .brand-icon i { font-size: 22px; }
+    .mobile-hero .brand-name { font-size: 16px; }
+    .mobile-hero .brand-sub  { font-size: 11px; }
+
+    .mobile-hero h2 {
+        position: relative; z-index: 1;
+        font-size: 24px; line-height: 1.25; font-weight: 700;
+        color: #fff; margin: 0 0 8px;
+    }
+
+    .mobile-hero p {
+        position: relative; z-index: 1;
+        font-size: 13.5px; line-height: 1.6;
+        color: rgba(255,255,255,0.55); margin: 0 0 18px;
+    }
+
+    .hero-tags {
+        position: relative; z-index: 1;
+        display: flex; flex-wrap: wrap; gap: 8px;
+    }
+
+    .hero-tag {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.85);
+        font-size: 11.5px; font-weight: 500;
+        padding: 6px 11px; border-radius: 20px;
+    }
+
+    .hero-tag i { font-size: 14px; }
+    .hero-tag.blue i  { color: #818cf8; }
+    .hero-tag.green i { color: #4ade80; }
+    .hero-tag.amber i { color: #fbbf24; }
+
+    /* Form sheet */
+    .auth-right {
+        flex: 1;
+        justify-content: flex-start;
+        margin-top: -28px;
+        position: relative; z-index: 2;
+        border-radius: 26px 26px 0 0;
+        padding: 26px 22px calc(32px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+    }
+
+    /* little grab-handle accent */
+    .auth-right::before {
+        content: '';
+        width: 40px; height: 4px; border-radius: 4px;
+        background: #e3e6f0;
+        align-self: center;
+        margin-bottom: 20px;
+    }
+
+    .welcome-chip { font-size: 11.5px; }
+
+    .auth-right h3 { font-size: 22px; margin-bottom: 4px; }
+    .auth-right .sub { font-size: 13.5px; margin-bottom: 22px; }
+
+    .form-label { font-size: 13px; }
+
+    .input-wrap { margin-bottom: 16px; }
+
+    /* 16px font stops iOS Safari zooming on focus; 50px tall = easy tap */
+    .form-control {
+        font-size: 16px;
+        padding: 14px 14px 14px 44px;
+        height: 50px;
+        border-radius: 12px;
+    }
+
+    .input-icon { left: 14px; font-size: 19px; }
+
+    .pwd-toggle { width: 44px; height: 44px; right: 3px; font-size: 20px; }
+
+    .form-options {
+        font-size: 13px;
+        margin-bottom: 22px;
+    }
+
+    .remember { min-height: 32px; gap: 8px; }
+    .remember input { width: 18px; height: 18px; }
+
+    .forgot { font-size: 13px; padding: 6px 0; }
+
+    .btn-login {
+        height: 52px;
+        font-size: 15px;
+        border-radius: 12px;
+    }
+
+    .divider { margin: 22px 0 16px; }
+
+    .register-link {
+        font-size: 14px;
+        background: #f6f7fb;
+        border-radius: 12px;
+        padding: 14px;
+    }
 }
 
 /* Small phones */
 @media (max-width: 360px) {
-    .auth-right { padding: 22px 18px 30px; }
-    .auth-right h3 { font-size: 16px; }
+    .mobile-hero { padding-left: 18px; padding-right: 18px; }
+    .mobile-hero h2 { font-size: 21px; }
+    .auth-right { padding-left: 18px; padding-right: 18px; }
+    .auth-right h3 { font-size: 20px; }
+}
+
+/* Short landscape phones: keep it usable */
+@media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+    .mobile-hero { padding-bottom: 48px; }
+    .mobile-hero p, .hero-tags { display: none; }
 }
 
 </style>
 </head>
 <body>
 
-<!-- Mobile brand bar (only visible on mobile) -->
-<div class="mobile-brand">
-    <div class="brand-icon"><i class="ti ti-brain"></i></div>
-    <div>
-        <div class="brand-name" style="color:#fff;">AI Inventory</div>
-        <div class="brand-sub">Smart Business Suite</div>
-    </div>
-</div>
-
 <div class="auth-wrapper">
 
-    <!-- Left Panel -->
+    <!-- Mobile hero (only visible on phones) -->
+    <div class="mobile-hero">
+        <div class="brand">
+            <div class="brand-icon"><i class="ti ti-brain"></i></div>
+            <div>
+                <div class="brand-name">AI Inventory</div>
+                <div class="brand-sub">Smart Business Suite</div>
+            </div>
+        </div>
+
+        <h2>Welcome back 👋</h2>
+        <p>Sign in to manage stock, track sales and see AI-powered insights.</p>
+
+        <div class="hero-tags">
+            <span class="hero-tag blue"><i class="ti ti-robot"></i> AI Predictions</span>
+            <span class="hero-tag green"><i class="ti ti-currency-rupee"></i> Profit Analytics</span>
+            <span class="hero-tag amber"><i class="ti ti-scan"></i> Invoice OCR</span>
+        </div>
+    </div>
+
+    <!-- Left Panel (desktop / tablet) -->
     <div class="auth-left">
         <div>
             <div class="brand">
@@ -349,7 +499,7 @@ body {
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                <div class="flash-msg">
+                <div class="flash-msg" role="alert">
                     <i class="ti ti-alert-circle"></i> {{ message }}
                 </div>
                 {% endfor %}
@@ -358,19 +508,24 @@ body {
 
         <form action="/login" method="post">
 
-            <label class="form-label">Email Address</label>
+            <label class="form-label" for="emailField">Email Address</label>
             <div class="input-wrap">
                 <i class="ti ti-mail input-icon"></i>
-                <input type="email" name="email" class="form-control"
-                    placeholder="you@example.com" required>
+                <input type="email" name="email" id="emailField" class="form-control"
+                    placeholder="you@example.com" autocomplete="email"
+                    inputmode="email" autocapitalize="none" required>
             </div>
 
-            <label class="form-label">Password</label>
+            <label class="form-label" for="pwdField">Password</label>
             <div class="input-wrap">
                 <i class="ti ti-lock input-icon"></i>
                 <input type="password" name="password" id="pwdField"
-                    class="form-control" placeholder="Enter your password" required>
-                <i class="ti ti-eye pwd-toggle" id="pwdToggle" onclick="togglePwd()"></i>
+                    class="form-control" placeholder="Enter your password"
+                    autocomplete="current-password" required>
+                <button type="button" class="pwd-toggle" id="pwdToggle"
+                    onclick="togglePwd()" aria-label="Show password">
+                    <i class="ti ti-eye"></i>
+                </button>
             </div>
 
             <div class="form-options">
@@ -398,13 +553,16 @@ body {
 <script>
 function togglePwd() {
     const f = document.getElementById('pwdField');
-    const i = document.getElementById('pwdToggle');
+    const b = document.getElementById('pwdToggle');
+    const i = b.querySelector('i');
     if (f.type === 'password') {
         f.type = 'text';
         i.classList.replace('ti-eye', 'ti-eye-off');
+        b.setAttribute('aria-label', 'Hide password');
     } else {
         f.type = 'password';
         i.classList.replace('ti-eye-off', 'ti-eye');
+        b.setAttribute('aria-label', 'Show password');
     }
 }
 </script>
