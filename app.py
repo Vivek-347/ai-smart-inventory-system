@@ -5757,6 +5757,74 @@ def changePassword():
         cursor.close()
         conn.close()
 
+
+# ==========================
+# ANDROID: DASHBOARD STATS API
+# ==========================
+@app.route('/api/dashboard-stats', methods=['GET'])
+def android_dashboard_stats():
+    uid = get_android_user_id()
+    if uid is None:
+        return jsonify({
+            "success": False,
+            "message": "Authentication required. Please log in again."
+        }), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn = getConnection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT COUNT(*),
+                   COALESCE(SUM(CASE WHEN stock < 10 THEN 1 ELSE 0 END), 0)
+            FROM products
+            WHERE uid = %s
+        """, (uid,))
+        product_row = cursor.fetchone() or (0, 0)
+        total_products = int(product_row[0] or 0)
+        low_stock = int(product_row[1] or 0)
+
+        cursor.execute("""
+            SELECT COALESCE(SUM(total_amount), 0)
+            FROM bills
+            WHERE uid = %s AND DATE(bill_date) = CURDATE()
+        """, (uid,))
+        today_sales_row = cursor.fetchone()
+        today_sales = float((today_sales_row or [0])[0] or 0)
+
+        cursor.execute("""
+            SELECT COALESCE(SUM((p.selling_price - p.cost_price) * bi.quantity), 0)
+            FROM bill_items bi
+            JOIN products p ON bi.product_id = p.pid
+            JOIN bills b ON bi.bill_id = b.bill_id
+            WHERE b.uid = %s AND bi.uid = %s AND p.uid = %s
+        """, (uid, uid, uid))
+        profit_row = cursor.fetchone()
+        total_profit = float((profit_row or [0])[0] or 0)
+
+        return jsonify({
+            "success": True,
+            "total_products": total_products,
+            "low_stock": low_stock,
+            "today_sales": round(today_sales, 2),
+            "total_profit": round(total_profit, 2)
+        }), 200
+
+    except Exception:
+        app.logger.exception("Android dashboard stats API error")
+        return jsonify({
+            "success": False,
+            "message": "Unable to load dashboard statistics"
+        }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 # ==========================
 # ANDROID LOGIN API
 # ==========================
