@@ -28,14 +28,22 @@ body{
 .header{
     background:linear-gradient(135deg,#4f46e5,#7c3aed);
     color:white;
-    padding:25px;
+    padding:clamp(16px, 4vw, 25px);
+}
+
+.header h2{
+    font-size:clamp(1.3rem, 4vw, 2rem);
+}
+
+.header p{
+    font-size:clamp(.85rem, 2.5vw, 1rem);
 }
 
 .info-box{
     background:#eef2ff;
     border-radius:15px;
-    padding:20px;
-    margin-bottom:20px;
+    padding:clamp(14px, 3vw, 20px);
+    height:100%;
 }
 
 .info-box h6{
@@ -45,6 +53,13 @@ body{
 
 .info-box h4{
     font-weight:700;
+    font-size:clamp(1.05rem, 3vw, 1.5rem);
+    word-break:break-word;
+}
+
+.section-title{
+    font-size:clamp(1.15rem, 3.5vw, 1.75rem);
+    margin-bottom:0;
 }
 
 .badge-ai{
@@ -53,6 +68,7 @@ body{
     padding:8px 15px;
     border-radius:30px;
     font-size:14px;
+    white-space:nowrap;
 }
 
 .table th{
@@ -71,13 +87,94 @@ body{
     padding:10px 30px;
 }
 
+/* Tablets and below */
+@media (max-width: 767.98px){
+
+    .container{
+        margin-top:1rem !important;
+        margin-bottom:1rem;
+    }
+
+    .card-body{
+        padding:1rem;
+    }
+
+    .table{
+        font-size:.9rem;
+    }
+
+    .btn{
+        padding:10px 20px;
+    }
+}
+
+/* Phones: turn table rows into stacked cards */
+@media (max-width: 575.98px){
+
+    .table-stack,
+    .table-stack tbody,
+    .table-stack tr,
+    .table-stack td{
+        display:block;
+        width:100%;
+    }
+
+    .table-stack thead{
+        display:none;
+    }
+
+    .table-stack{
+        border:none;
+    }
+
+    .table-stack tr{
+        border:1px solid #dee2e6;
+        border-radius:12px;
+        margin-bottom:12px;
+        overflow:hidden;
+        background:#fff;
+    }
+
+    .table-stack td{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        text-align:right;
+        border:none;
+        border-bottom:1px solid #eef0f4;
+        padding:10px 14px;
+    }
+
+    .table-stack td:last-child{
+        border-bottom:none;
+    }
+
+    .table-stack td::before{
+        content:attr(data-label);
+        font-weight:600;
+        color:#4f46e5;
+        text-align:left;
+        flex-shrink:0;
+    }
+
+    /* Full-width stacked buttons */
+    .action-buttons{
+        flex-direction:column-reverse;
+    }
+
+    .action-buttons .btn{
+        width:100%;
+    }
+}
+
 </style>
 
 </head>
 
 <body>
 
-<div class="container mt-5">
+<div class="container mt-5 px-2 px-sm-3">
 
     <div class="card">
 
@@ -93,39 +190,39 @@ body{
 
         <div class="card-body">
 
-            <div class="row">
+            <div class="row g-3">
 
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
 
                     <div class="info-box">
 
                         <h6>Supplier</h6>
 
-                        <h4>{{ bill["supplier"] }}</h4>
+                        <h4 class="mb-0">{{ bill["supplier"] }}</h4>
 
                     </div>
 
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-12 col-sm-6 col-md-4">
 
                     <div class="info-box">
 
                         <h6>Invoice Number</h6>
 
-                        <h4>{{ bill["invoice_number"] }}</h4>
+                        <h4 class="mb-0">{{ bill["invoice_number"] }}</h4>
 
                     </div>
 
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-12 col-sm-6 col-md-4">
 
                     <div class="info-box">
 
                         <h6>Invoice Date</h6>
 
-                        <h4>{{ bill["invoice_date"] }}</h4>
+                        <h4 class="mb-0">{{ bill["invoice_date"] }}</h4>
 
                     </div>
 
@@ -133,11 +230,11 @@ body{
 
             </div>
 
-            <hr>
+            <hr class="my-4">
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
 
-                <h3>Detected Products</h3>
+                <h3 class="section-title">Detected Products</h3>
 
                 <span class="badge-ai">
                     AI VERIFIED
@@ -145,46 +242,50 @@ body{
 
             </div>
 
-            <table class="table table-bordered table-hover">
+            <div class="table-responsive">
 
-                <thead>
+                <table class="table table-bordered table-hover table-stack align-middle">
 
-                    <tr>
+                    <thead>
 
-                        <th>#</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Cost Price</th>
+                        <tr>
 
-                    </tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Cost Price</th>
 
-                </thead>
+                        </tr>
 
-                <tbody>
+                    </thead>
 
-                {% for item in bill["items"] %}
+                    <tbody>
 
-                    <tr>
+                    {% for item in bill["items"] %}
 
-                        <td>{{ loop.index }}</td>
+                        <tr>
 
-                        <td>{{ item["product"] }}</td>
+                            <td data-label="#">{{ loop.index }}</td>
 
-                        <td>{{ item["quantity"] }}</td>
+                            <td data-label="Product">{{ item["product"] }}</td>
 
-                        <td>₹ {{ item["cost_price"] }}</td>
+                            <td data-label="Quantity">{{ item["quantity"] }}</td>
 
-                    </tr>
+                            <td data-label="Cost Price">₹ {{ item["cost_price"] }}</td>
 
-                {% endfor %}
+                        </tr>
 
-                </tbody>
+                    {% endfor %}
 
-            </table>
+                    </tbody>
 
-            <div class="text-end mt-4">
+                </table>
 
-                <form action="/confirmPurchaseImport" method="POST">
+            </div>
+
+            <form action="/confirmPurchaseImport" method="POST" class="mt-4">
+
+                <div class="action-buttons d-flex justify-content-end gap-2">
 
                     <a href="/purchaseOCR"
                        class="btn btn-secondary">
@@ -203,9 +304,9 @@ body{
 
                     </button>
 
-                </form>
+                </div>
 
-            </div>
+            </form>
 
         </div>
 
