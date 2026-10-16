@@ -2119,27 +2119,53 @@ def addProduct():
     return "Product Added Successfully"
 
 # ==========================
+# ANDROID API AUTH HELPERS
+# ==========================
+# The website continues to use its existing Flask session. Android uses a
+# signed, time-limited bearer token so mobile API calls can identify the user.
+_ANDROID_TOKEN_SALT = "android-api-v1"
+_ANDROID_TOKEN_MAX_AGE = 24 * 60 * 60  # 24 hours
+
+def create_android_token(user_id):
+    serializer = URLSafeTimedSerializer(app.secret_key, salt=_ANDROID_TOKEN_SALT)
+    return serializer.dumps({"uid": user_id})
+
+def get_android_user_id():
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header.split(" ", 1)[1].strip()
+    if not token:
+        return None
+    serializer = URLSafeTimedSerializer(app.secret_key, salt=_ANDROID_TOKEN_SALT)
+    try:
+        payload = serializer.loads(token, max_age=_ANDROID_TOKEN_MAX_AGE)
+        return payload.get("uid")
+    except (BadSignature, SignatureExpired, TypeError, AttributeError):
+        return None
+
+# ==========================
 # ANDROID: VIEW PRODUCTS API
 # ==========================
 @app.route('/api/products', methods=['GET'])
 def android_get_products():
+    uid = get_android_user_id()
+    if uid is None:
+        return jsonify({"success": False, "message": "Authentication required. Please log in again."}), 401
+
     conn = None
     cursor = None
-
     try:
         conn = getConnection()
         cursor = conn.cursor()
-
         cursor.execute("""
-            SELECT pid, product_name, category,
-                   cost_price, selling_price, stock
+            SELECT pid, product_name, category, cost_price, selling_price, stock
             FROM products
+            WHERE uid = %s
             ORDER BY pid DESC
-        """)
-
+        """, (uid,))
         rows = cursor.fetchall()
         products_list = []
-
         for row in rows:
             products_list.append({
                 "pid": row[0],
@@ -2149,106 +2175,71 @@ def android_get_products():
                 "selling_price": float(row[4] or 0),
                 "stock": int(row[5] or 0)
             })
-
-        return jsonify({
-            "success": True,
-            "products": products_list
-        }), 200
-
+        return jsonify({"success": True, "products": products_list}), 200
     except Exception:
         app.logger.exception("Android products API error")
-        return jsonify({
-            "success": False,
-            "message": "Unable to load products"
-        }), 500
-
+        return jsonify({"success": False, "message": "Unable to load products"}), 500
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
 
+# ==========================
+# ANDROID: ADD PRODUCT API
+# ==========================
 @app.route('/api/products/add', methods=['POST'])
 def android_add_product():
+    uid = get_android_user_id()
+    if uid is None:
+        return jsonify({"success": False, "message": "Authentication required. Please log in again."}), 401
+
     conn = None
     cursor = None
-
     try:
         data = request.get_json(silent=True)
-
-        if not data:
-            return jsonify({
-                "success": False,
-                "message": "Invalid request data"
-            }), 400
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "message": "Invalid request data"}), 400
 
         product_name = str(data.get("product_name", "")).strip()
         category = str(data.get("category", "")).strip()
-
         if not product_name or not category:
-            return jsonify({
-                "success": False,
-                "message": "Product name and category are required"
-            }), 400
+            return jsonify({"success": False, "message": "Product name and category are required"}), 400
 
         try:
             cost_price = float(data.get("cost_price"))
             selling_price = float(data.get("selling_price"))
-            stock = int(data.get("stock"))
-        except (TypeError, ValueError):
-            return jsonify({
-                "success": False,
-                "message": "Enter valid prices and stock"
-            }), 400
+            stock_value = float(data.get("stock"))
+            if not stock_value.is_integer():
+                raise ValueError("Stock must be a whole number")
+            stock = int(stock_value)
+        except (TypeError, ValueError, OverflowError):
+            return jsonify({"success": False, "message": "Enter valid prices and whole-number stock"}), 400
 
+        if not all(map(lambda value: value == value and abs(value) != float('inf'), (cost_price, selling_price))):
+            return jsonify({"success": False, "message": "Enter valid finite prices"}), 400
         if cost_price < 0 or selling_price < 0 or stock < 0:
-            return jsonify({
-                "success": False,
-                "message": "Prices and stock cannot be negative"
-            }), 400
+            return jsonify({"success": False, "message": "Prices and stock cannot be negative"}), 400
 
         conn = getConnection()
         cursor = conn.cursor()
-
         cursor.execute("""
             INSERT INTO products
-                (uid, product_name, category,
-                 cost_price, selling_price, stock)
+                (uid, product_name, category, cost_price, selling_price, stock)
             VALUES (%s, %s, %s, %s, %s, %s)
-        """, (
-            session.get("uid"),
-            product_name,
-            category,
-            cost_price,
-            selling_price,
-            stock
-        ))
-
+        """, (uid, product_name, category, cost_price, selling_price, stock))
         conn.commit()
-
-        return jsonify({
-            "success": True,
-            "message": "Product added successfully"
-        }), 201
-
+        return jsonify({"success": True, "message": "Product added successfully", "pid": cursor.lastrowid}), 201
     except Exception:
         app.logger.exception("Android add product API error")
-
         if conn:
             conn.rollback()
-
-        return jsonify({
-            "success": False,
-            "message": "Unable to add product"
-        }), 500
-
+        return jsonify({"success": False, "message": "Unable to add product"}), 500
     finally:
         if cursor:
             cursor.close()
-
         if conn:
             conn.close()
-
 
 # =========================================================
 # 🤖 AI SMART PURCHASE PLANNER
@@ -5807,9 +5798,11 @@ def android_login():
         user = cursor.fetchone()
 
         if user:
+            token = create_android_token(user[0])
             return jsonify({
                 "success": True,
                 "message": "Login successful",
+                "token": token,
                 "user": {
                     "id": user[0],
                     "name": user[1],
