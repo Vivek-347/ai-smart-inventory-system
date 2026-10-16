@@ -17,6 +17,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
 }
 
 .page-header h2 {
@@ -35,6 +37,7 @@
 .breadcrumb-nav {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 6px;
     font-size: 12px;
     color: #8a8fa8;
@@ -58,17 +61,21 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 16px;
 }
 
 .period-left {
     display: flex;
     align-items: center;
     gap: 14px;
+    min-width: 0;
 }
 
 .period-icon {
     width: 42px;
     height: 42px;
+    flex-shrink: 0;
     background: rgba(79,110,247,0.25);
     border-radius: 10px;
     display: flex;
@@ -92,6 +99,7 @@
     font-weight: 600;
     color: #fff;
     text-transform: capitalize;
+    word-break: break-word;
 }
 
 .generated-chip {
@@ -105,6 +113,7 @@
     font-weight: 500;
     padding: 6px 14px;
     border-radius: 20px;
+    white-space: nowrap;
 }
 
 .generated-chip i { font-size: 14px; }
@@ -132,6 +141,7 @@
     padding: 20px;
     position: relative;
     overflow: hidden;
+    min-width: 0;
 }
 
 .stat-card::after {
@@ -179,13 +189,19 @@
     font-size: 26px;
     font-weight: 700;
     color: #1a1d2e;
-    line-height: 1;
+    line-height: 1.1;
+    word-break: break-word;
 }
 
 .stat-value.green  { color: #16a34a; }
 .stat-value.blue   { color: #4f6ef7; }
 .stat-value.amber  { color: #d97706; }
 .stat-value.purple { color: #7c3aed; }
+
+.stat-value.product-name {
+    font-size: 17px;
+    color: #0d9488;
+}
 
 /* ── Profit Bar ── */
 
@@ -201,6 +217,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     margin-bottom: 14px;
 }
 
@@ -233,20 +250,29 @@
 .progress-labels {
     display: flex;
     justify-content: space-between;
+    gap: 8px;
     font-size: 11.5px;
     color: #b0b4c8;
+}
+
+.progress-labels .mid {
+    text-align: center;
+    min-width: 0;
+    word-break: break-word;
 }
 
 /* ── Action Buttons ── */
 
 .action-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
 }
 
 .btn-download {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     background: #dc2626;
     color: #fff;
@@ -270,6 +296,7 @@
 .btn-back {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     background: #f0f2f7;
     color: #5a5f7d;
@@ -288,6 +315,50 @@
 }
 
 .btn-download i, .btn-back i { font-size: 17px; }
+
+/* ── Responsive ── */
+
+/* Tablets: 2 columns */
+@media (max-width: 991.98px) {
+    .stats-grid,
+    .stats-grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Phones */
+@media (max-width: 575.98px) {
+
+    .page-header,
+    .period-banner,
+    .profit-bar-panel {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .stats-grid,
+    .stats-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .stats-grid-2 { margin-bottom: 16px; }
+
+    .stat-card { padding: 16px; }
+
+    .stat-value { font-size: 22px; }
+    .stat-value.product-name { font-size: 16px; }
+
+    .progress-labels .mid { display: none; }
+
+    .action-row { flex-direction: column; }
+
+    .btn-download,
+    .btn-back {
+        width: 100%;
+    }
+}
 
 </style>
 </head>
@@ -361,7 +432,7 @@
         <div class="stat-card teal">
             <div class="stat-icon teal"><i class="ti ti-star"></i></div>
             <div class="stat-label">Top Selling Product</div>
-            <div class="stat-value" style="font-size:17px; color:#0d9488;">{{ top_product }}</div>
+            <div class="stat-value product-name">{{ top_product }}</div>
         </div>
 
         <div class="stat-card green">
@@ -395,7 +466,7 @@
         </div>
         <div class="progress-labels">
             <span>0%</span>
-            <span>Sales: ₹{{ total_sales }} → Profit: ₹{{ total_profit }}</span>
+            <span class="mid">Sales: ₹{{ total_sales }} → Profit: ₹{{ total_profit }}</span>
             <span>100%</span>
         </div>
     </div>
