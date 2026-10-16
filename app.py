@@ -2115,7 +2115,58 @@ def addProduct():
 
     return "Product Added Successfully"
 
+# ==========================
+# ANDROID: VIEW PRODUCTS API
+# ==========================
+@app.route('/api/products', methods=['GET'])
+def android_get_products():
+    conn = None
+    cursor = None
 
+    try:
+        conn = getConnection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT pid, product_name, category,
+                   cost_price, selling_price, stock
+            FROM products
+            ORDER BY pid DESC
+        """)
+
+        rows = cursor.fetchall()
+        products_list = []
+
+        for row in rows:
+            products_list.append({
+                "pid": row[0],
+                "product_name": row[1],
+                "category": row[2],
+                "cost_price": float(row[3] or 0),
+                "selling_price": float(row[4] or 0),
+                "stock": int(row[5] or 0)
+            })
+
+        return jsonify({
+            "success": True,
+            "products": products_list
+        }), 200
+
+    except Exception:
+        app.logger.exception("Android products API error")
+        return jsonify({
+            "success": False,
+            "message": "Unable to load products"
+        }), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+            
 # =========================================================
 # 🤖 AI SMART PURCHASE PLANNER
 # =========================================================
