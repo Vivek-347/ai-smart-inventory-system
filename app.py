@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from flask import send_file
 from reportlab.pdfgen import canvas
 
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+from functools import wraps
+
 from ai import ask_ai
 from flask import jsonify
 from business_context import get_business_context
