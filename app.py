@@ -2165,8 +2165,88 @@ def android_get_products():
         if conn:
             conn.close()
 
+@app.route('/api/products/add', methods=['POST'])
+def android_add_product():
+    conn = None
+    cursor = None
 
-            
+    try:
+        data = request.get_json(silent=True)
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "Invalid request data"
+            }), 400
+
+        product_name = str(data.get("product_name", "")).strip()
+        category = str(data.get("category", "")).strip()
+
+        if not product_name or not category:
+            return jsonify({
+                "success": False,
+                "message": "Product name and category are required"
+            }), 400
+
+        try:
+            cost_price = float(data.get("cost_price"))
+            selling_price = float(data.get("selling_price"))
+            stock = int(data.get("stock"))
+        except (TypeError, ValueError):
+            return jsonify({
+                "success": False,
+                "message": "Enter valid prices and stock"
+            }), 400
+
+        if cost_price < 0 or selling_price < 0 or stock < 0:
+            return jsonify({
+                "success": False,
+                "message": "Prices and stock cannot be negative"
+            }), 400
+
+        conn = getConnection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO products
+                (uid, product_name, category,
+                 cost_price, selling_price, stock)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (
+            session.get("uid"),
+            product_name,
+            category,
+            cost_price,
+            selling_price,
+            stock
+        ))
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Product added successfully"
+        }), 201
+
+    except Exception:
+        app.logger.exception("Android add product API error")
+
+        if conn:
+            conn.rollback()
+
+        return jsonify({
+            "success": False,
+            "message": "Unable to add product"
+        }), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+
 # =========================================================
 # 🤖 AI SMART PURCHASE PLANNER
 # =========================================================
