@@ -887,6 +887,22 @@ body { margin: 0; background: #f0f2f7; font-family: 'Inter', system-ui, sans-ser
                             </div>
 
                             <div class="form-group">
+                                <label class="form-label">FSSAI License Number</label>
+                                <div class="input-icon">
+                                    <i class="ti ti-certificate"></i>
+                                    <input type="text" name="fssai_number" class="form-control" value="{{ account.fssai_number if account else '' }}" placeholder="Enter FSSAI license number" maxlength="20">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Show FSSAI number on bills</label>
+                                <div class="form-check form-switch" style="padding-top:8px;">
+                                    <input class="form-check-input" type="checkbox" name="show_fssai_on_bill" value="1" {% if settings and settings.show_fssai_on_bill %}checked{% endif %}>
+                                    <label class="form-check-label">Display my FSSAI license number on invoices</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
 
                                 <label class="form-label">Invoice prefix</label>
 

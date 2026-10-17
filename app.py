@@ -84,7 +84,8 @@ def registerUser():
 
     name = request.form["name"].strip()
     business_name = request.form["business_name"].strip()
-    gst_number = request.form["gst_number"].strip()
+    gst_number = request.form.get("gst_number", "").strip()
+    fssai_number = request.form.get("fssai_number", "").strip()
     phone = request.form["phone"].strip()
     email = request.form["email"].strip()
     address = request.form["address"].strip()
@@ -119,6 +120,7 @@ def registerUser():
             name,
             business_name,
             gst_number,
+            fssai_number,
             phone,
             email,
             address,
@@ -128,7 +130,7 @@ def registerUser():
             invoice_prefix,
             password
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         cursor.execute(
@@ -137,6 +139,7 @@ def registerUser():
                 name,
                 business_name,
                 gst_number,
+                fssai_number,
                 phone,
                 email,
                 address,
@@ -2997,6 +3000,7 @@ def generateBill():
     SELECT
         business_name,
         gst_number,
+        fssai_number,
         phone,
         address,
         city,
@@ -3011,12 +3015,15 @@ def generateBill():
 
     business_name = business[0]
     gst_number = business[1]
-    business_phone = business[2]
-    business_address = business[3]
-    business_city = business[4]
-    business_state = business[5]
-    business_pincode = business[6]
-    invoice_prefix = business[7]
+    fssai_number = business[2]
+    business_phone = business[3]
+    business_address = business[4]
+    business_city = business[5]
+    business_state = business[6]
+    business_pincode = business[7]
+    invoice_prefix = business[8]
+    bill_settings = get_user_settings(session["uid"], cursor)
+    show_fssai_on_bill = bool(bill_settings.get("show_fssai_on_bill", 1))
 
     # ==========================
     # BILL VARIABLES
@@ -3241,6 +3248,9 @@ def generateBill():
 
         gst_number=gst_number,
 
+        fssai_number=fssai_number,
+        show_fssai_on_bill=show_fssai_on_bill,
+
         phone=business_phone,
 
         address=business_address,
@@ -3464,6 +3474,19 @@ def downloadInvoice(bill_id):
     cursor.close()
     conn.close()
 
+    # Include FSSAI only when the account has enabled it in Billing Settings.
+    settings_conn = getConnection()
+    settings_cursor = settings_conn.cursor(dictionary=True)
+    try:
+        ensure_user_settings_table(settings_cursor)
+        settings_cursor.execute("SELECT fssai_number FROM users WHERE id=%s", (session["uid"],))
+        business_info = settings_cursor.fetchone() or {}
+        bill_settings = get_user_settings(session["uid"], settings_cursor)
+        fssai_number = business_info.get("fssai_number", "") if bill_settings.get("show_fssai_on_bill", 1) else ""
+    finally:
+        settings_cursor.close()
+        settings_conn.close()
+
     pdf_file = f"invoice_{bill_id}.pdf"
 
     c = canvas.Canvas(pdf_file)
@@ -3474,6 +3497,8 @@ def downloadInvoice(bill_id):
     c.setFont("Helvetica",12)
 
     c.drawString(50,760,f"Invoice No : {bill[0]}")
+    if fssai_number:
+        c.drawString(50,785,f"FSSAI License No : {fssai_number}")
     c.drawString(50,735,f"Customer : {bill[2]}")
     c.drawString(50,710,f"Grand Total : Rs.{bill[10]}")
     c.drawString(50,685,f"Payment : {bill[6]}")
@@ -5519,6 +5544,7 @@ def ensure_user_settings_table(cursor):
             dead_stock_days INT NOT NULL DEFAULT 15,
             currency VARCHAR(8) NOT NULL DEFAULT 'INR',
             gst_rate DECIMAL(5,2) NOT NULL DEFAULT 18.00,
+            show_fssai_on_bill TINYINT(1) NOT NULL DEFAULT 1,
             low_stock_alert TINYINT(1) NOT NULL DEFAULT 1,
             out_of_stock_alert TINYINT(1) NOT NULL DEFAULT 1,
             dead_stock_alert TINYINT(1) NOT NULL DEFAULT 1,
@@ -5536,6 +5562,7 @@ def ensure_user_settings_table(cursor):
         "dead_stock_days": "INT NOT NULL DEFAULT 15",
         "currency": "VARCHAR(8) NOT NULL DEFAULT 'INR'",
         "gst_rate": "DECIMAL(5,2) NOT NULL DEFAULT 18.00",
+        "show_fssai_on_bill": "TINYINT(1) NOT NULL DEFAULT 1",
         "low_stock_alert": "TINYINT(1) NOT NULL DEFAULT 1",
         "out_of_stock_alert": "TINYINT(1) NOT NULL DEFAULT 1",
         "dead_stock_alert": "TINYINT(1) NOT NULL DEFAULT 1",
@@ -5590,7 +5617,7 @@ def settings():
             conn.commit()
 
         cursor.execute("""
-            SELECT id, name, email, phone, business_name, gst_number, invoice_prefix
+            SELECT id, name, email, phone, business_name, gst_number, fssai_number, invoice_prefix
             FROM users WHERE id=%s
         """, (uid,))
         account = cursor.fetchone() or {}
@@ -5686,6 +5713,8 @@ def saveInventorySettings():
 def saveBillingSettings():
     business_name = request.form.get("business_name", "").strip()
     gst_number = request.form.get("gst_number", "").strip()
+    fssai_number = request.form.get("fssai_number", "").strip()
+    show_fssai_on_bill = 1 if request.form.get("show_fssai_on_bill") else 0
     invoice_prefix = request.form.get("invoice_prefix", "INV-").strip() or "INV-"
     try:
         gst_rate = float(request.form.get("gst_rate", 18))
@@ -5698,11 +5727,12 @@ def saveBillingSettings():
     conn = getConnection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE users SET business_name=%s, gst_number=%s, invoice_prefix=%s WHERE id=%s",
-                       (business_name, gst_number, invoice_prefix, session["uid"]))
+        cursor.execute("UPDATE users SET business_name=%s, gst_number=%s, fssai_number=%s, invoice_prefix=%s WHERE id=%s",
+                       (business_name, gst_number, fssai_number, invoice_prefix, session["uid"]))
         ensure_user_settings_table(cursor)
-        cursor.execute("""INSERT INTO user_settings (uid, gst_rate) VALUES (%s,%s)
-            ON DUPLICATE KEY UPDATE gst_rate=VALUES(gst_rate)""", (session["uid"], gst_rate))
+        cursor.execute("""INSERT INTO user_settings (uid, gst_rate, show_fssai_on_bill) VALUES (%s,%s,%s)
+            ON DUPLICATE KEY UPDATE gst_rate=VALUES(gst_rate), show_fssai_on_bill=VALUES(show_fssai_on_bill)""",
+                       (session["uid"], gst_rate, show_fssai_on_bill))
         conn.commit()
         return redirect("/settings?section=billing&saved=billing")
     finally:

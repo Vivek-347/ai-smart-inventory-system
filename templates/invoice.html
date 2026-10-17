@@ -14,7 +14,7 @@
   <header class="top">
     <div class="business"><h2>{{ business_name or 'BUSINESS NAME' }}</h2>
       <div class="muted">{{ address or '' }}{% if city %}, {{ city }}{% endif %}{% if state %}, {{ state }}{% endif %}{% if pincode %} – {{ pincode }}{% endif %}<br>
-      {% if gst_number %}GSTIN: {{ gst_number }}<br>{% endif %}{% if phone %}Phone: {{ phone }}{% endif %}</div>
+      {% if gst_number %}GSTIN: {{ gst_number }}<br>{% endif %}{% if show_fssai_on_bill and fssai_number %}FSSAI License No: {{ fssai_number }}<br>{% endif %}{% if phone %}Phone: {{ phone }}{% endif %}</div>
     </div>
     <div class="title"><h1>TAX INVOICE</h1><div>Invoice No: <b>{{ invoice_prefix or '' }}{{ bill_id }}</b></div><div>Date: <b>{{ date }}</b></div></div>
   </header>
@@ -29,7 +29,7 @@
       {% if customer_phone %}<div>Phone: {{ customer_phone }}</div>{% endif %}{% if customer_address %}<div>Address: {{ customer_address }}</div>{% endif %}{% if customer_gst %}<div>GSTIN: {{ customer_gst }}</div>{% endif %}
     </div>
     <div class="party"><div class="cap">BILL FROM</div><strong>{{ business_name or 'BUSINESS NAME' }}</strong>
-      {% if phone %}<div>Phone: {{ phone }}</div>{% endif %}{% if gst_number %}<div>GSTIN: {{ gst_number }}</div>{% endif %}<div>Address: {{ address or '' }}{% if city %}, {{ city }}{% endif %}{% if state %}, {{ state }}{% endif %}{% if pincode %} – {{ pincode }}{% endif %}</div>
+      {% if phone %}<div>Phone: {{ phone }}</div>{% endif %}{% if gst_number %}<div>GSTIN: {{ gst_number }}</div>{% endif %}{% if show_fssai_on_bill and fssai_number %}<div>FSSAI License No: {{ fssai_number }}</div>{% endif %}<div>Address: {{ address or '' }}{% if city %}, {{ city }}{% endif %}{% if state %}, {{ state }}{% endif %}{% if pincode %} – {{ pincode }}{% endif %}</div>
     </div>
   </section>
   <section class="items"><table><thead><tr><th>#</th><th>Product / Description</th><th>Qty</th><th>Rate</th><th>GST</th><th>Amount</th></tr></thead><tbody>
