@@ -3022,9 +3022,10 @@ def generateBill():
     business_state = business[6]
     business_pincode = business[7]
     invoice_prefix = business[8]
-    bill_settings = get_user_settings(session["uid"], cursor)
-    show_fssai_on_bill = bool(bill_settings.get("show_fssai_on_bill", 1))
-
+    bill_settings = get_user_settings(session["uid"])
+    show_fssai_on_bill = bool(
+    bill_settings.get("show_fssai_on_bill", 1)
+)
     # ==========================
     # BILL VARIABLES
     # ==========================
