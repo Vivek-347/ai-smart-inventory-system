@@ -284,14 +284,24 @@ body { background: #f0f2f7; font-family: 'Inter', system-ui, sans-serif; min-hei
                     <span class="notif-badge" id="notificationBadge">0</span>
                 </div>
                 <div class="notification-dropdown" id="notificationDropdown">
-                    <div class="notification-header">
+                  <div class="notification-header">
                         <div>
                             <strong>Notifications</strong>
                             <small id="notificationCount">Loading...</small>
                         </div>
-                        <button class="notif-refresh" onclick="loadNotifications()">
+
+                        <button class="notif-refresh"
+                                onclick="loadNotifications()"
+                                title="Refresh notifications">
                             <i class="ti ti-refresh"></i>
                         </button>
+                    </div>
+
+                    <!-- Admin announcements appear here -->
+                    <div id="notificationList">
+                        <div class="notification-item p-3">
+                            Loading announcements...
+                        </div>
                     </div>
                     <div class="notification-list" id="notificationList">
                         <div class="notification-loading">Loading notifications...</div>
@@ -546,160 +556,600 @@ body { background: #f0f2f7; font-family: 'Inter', system-ui, sans-serif; min-hei
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+).matches;
 
-// ═══ Count-up helper ═══
+
+// ═══════════════════════════════════════
+// COUNT-UP HELPER
+// ═══════════════════════════════════════
+
 function animateNum(el, target, fmt) {
+    if (!el) return;
+
     target = Number(target) || 0;
-    fmt = fmt || function (v) { return Math.round(v); };
-    if (reduceMotion || target === 0) { el.textContent = fmt(target); return; }
-    const start = performance.now(), dur = 1100;
+    fmt = fmt || function (v) {
+        return Math.round(v);
+    };
+
+    if (reduceMotion || target === 0) {
+        el.textContent = fmt(target);
+        return;
+    }
+
+    const start = performance.now();
+    const dur = 1100;
+
     (function tick(now) {
         const p = Math.min((now - start) / dur, 1);
-        el.textContent = fmt(target * (1 - Math.pow(1 - p, 3)));
-        if (p < 1) requestAnimationFrame(tick);
+
+        el.textContent = fmt(
+            target * (1 - Math.pow(1 - p, 3))
+        );
+
+        if (p < 1) {
+            requestAnimationFrame(tick);
+        }
     })(start);
 }
-const inr = function (v) { return "₹" + Math.round(v).toLocaleString("en-IN"); };
+
+
+const inr = function (v) {
+    return "₹" + Math.round(v).toLocaleString("en-IN");
+};
+
+
+// ═══════════════════════════════════════
+// DASHBOARD INITIALIZATION
+// ═══════════════════════════════════════
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Count up every stat
+    // Animate dashboard statistics
     document.querySelectorAll("[data-count]").forEach(function (el) {
         const suffix = el.dataset.suffix || "";
-        const fmt = el.dataset.money ? inr : function (v) { return Math.round(v) + suffix; };
+
+        const fmt = el.dataset.money
+            ? inr
+            : function (v) {
+                return Math.round(v) + suffix;
+            };
+
         animateNum(el, el.dataset.count, fmt);
     });
 
-    // Score bars fill when visible
-    const io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-            if (e.isIntersecting) { e.target.style.width = Math.min(100, Number(e.target.dataset.w) || 0) + "%"; io.unobserve(e.target); }
-        });
-    }, { threshold: 0.2 });
-    document.querySelectorAll(".mp-bar i").forEach(function (b) { io.observe(b); });
 
-    // Hero KPIs (derived from the numbers already on this page)
+    // ═══════════════════════════════════════
+    // SCORE BAR ANIMATION
+    // ═══════════════════════════════════════
+
+    if ("IntersectionObserver" in window) {
+
+        const io = new IntersectionObserver(function (entries) {
+
+            entries.forEach(function (e) {
+
+                if (e.isIntersecting) {
+
+                    e.target.style.width =
+                        Math.min(
+                            100,
+                            Number(e.target.dataset.w) || 0
+                        ) + "%";
+
+                    io.unobserve(e.target);
+                }
+
+            });
+
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll(".mp-bar i").forEach(
+            function (b) {
+                io.observe(b);
+            }
+        );
+
+    }
+
+
+    // ═══════════════════════════════════════
+    // HERO KPIs
+    // ═══════════════════════════════════════
+
     const sales = Number("{{ total_sales }}") || 0;
     const profit = Number("{{ total_profit }}") || 0;
     const bills = Number("{{ total_bills }}") || 0;
-    const margin = sales > 0 ? profit / sales * 100 : 0;
-    const avgBill = bills > 0 ? sales / bills : 0;
-    animateNum(document.getElementById("kpiMargin"), margin, function (v) { return v.toFixed(1) + "%"; });
-    animateNum(document.getElementById("kpiAvgBill"), avgBill, inr);
 
-    // Time-aware greeting line
-    const h = new Date().getHours();
-    const part = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
-    document.getElementById("heroGreeting").textContent = "Good " + part + ". Here is how your business is doing.";
+    const margin = sales > 0
+        ? profit / sales * 100
+        : 0;
 
-    // Sliding period indicator
+    const avgBill = bills > 0
+        ? sales / bills
+        : 0;
+
+    animateNum(
+        document.getElementById("kpiMargin"),
+        margin,
+        function (v) {
+            return v.toFixed(1) + "%";
+        }
+    );
+
+    animateNum(
+        document.getElementById("kpiAvgBill"),
+        avgBill,
+        inr
+    );
+
+
+    // ═══════════════════════════════════════
+    // TIME-AWARE GREETING
+    // ═══════════════════════════════════════
+
+    const greeting = document.getElementById("heroGreeting");
+
+    if (greeting) {
+
+        const h = new Date().getHours();
+
+        const part = h < 12
+            ? "morning"
+            : h < 17
+                ? "afternoon"
+                : "evening";
+
+        greeting.textContent =
+            "Good " + part +
+            ". Here is how your business is doing.";
+    }
+
+
+    // ═══════════════════════════════════════
+    // PERIOD SLIDER
+    // ═══════════════════════════════════════
+
     const slider = document.getElementById("periodSlider");
     const periodBox = document.getElementById("periodBtns");
-    function placeSlider() {
-        const active = document.querySelector(".period-btn.active");
-        if (!active) { slider.style.width = "0"; return; }
-        slider.style.left = active.offsetLeft + "px";
-        slider.style.width = active.offsetWidth + "px";
-        // On narrow screens the tab strip scrolls: keep the active tab in view
-        if (periodBox.scrollWidth > periodBox.clientWidth) {
-            periodBox.scrollLeft = active.offsetLeft - (periodBox.clientWidth - active.offsetWidth) / 2;
+
+    if (slider && periodBox) {
+
+        function placeSlider() {
+
+            const active = document.querySelector(
+                ".period-btn.active"
+            );
+
+            if (!active) {
+                slider.style.width = "0";
+                return;
+            }
+
+            slider.style.left = active.offsetLeft + "px";
+            slider.style.width = active.offsetWidth + "px";
+
+            if (periodBox.scrollWidth > periodBox.clientWidth) {
+
+                periodBox.scrollLeft =
+                    active.offsetLeft -
+                    (periodBox.clientWidth - active.offsetWidth) / 2;
+            }
         }
+
+        placeSlider();
+
+        window.addEventListener("resize", placeSlider);
+
+        document.querySelectorAll(".period-btn").forEach(
+            function (b) {
+
+                b.addEventListener("mouseenter", function () {
+                    slider.style.opacity = ".35";
+                });
+
+                b.addEventListener("mouseleave", function () {
+                    slider.style.opacity = "1";
+                });
+
+                b.addEventListener("click", function () {
+
+                    document.querySelectorAll(".period-btn").forEach(
+                        function (x) {
+                            x.classList.remove("active");
+                        }
+                    );
+
+                    b.classList.add("active");
+                    placeSlider();
+                });
+
+            }
+        );
     }
-    placeSlider();
-    window.addEventListener("resize", placeSlider);
-    document.querySelectorAll(".period-btn").forEach(function (b) {
-        b.addEventListener("mouseenter", function () { slider.style.opacity = ".35"; });
-        b.addEventListener("mouseleave", function () { slider.style.opacity = "1"; });
-        b.addEventListener("click", function () {
-            document.querySelectorAll(".period-btn").forEach(function (x) { x.classList.remove("active"); });
-            b.classList.add("active");
-            placeSlider();
-        });
-    });
+
+
+    // ═══════════════════════════════════════
+    // LOAD NOTIFICATIONS
+    // ═══════════════════════════════════════
 
     loadNotifications();
+
 });
 
-// ═══ Mouse-follow spotlight ═══
+
+// ═══════════════════════════════════════
+// MOUSE-FOLLOW SPOTLIGHT
+// ═══════════════════════════════════════
+
 document.addEventListener("mousemove", function (e) {
-    const card = e.target.closest(".stat-card, .metric-pill, .activity-item, .mini-kpi");
+
+    const card = e.target.closest(
+        ".stat-card, .metric-pill, .activity-item, .mini-kpi"
+    );
+
     if (!card) return;
+
     const r = card.getBoundingClientRect();
-    card.style.setProperty("--mx", (e.clientX - r.left) + "px");
-    card.style.setProperty("--my", (e.clientY - r.top) + "px");
+
+    card.style.setProperty(
+        "--mx",
+        (e.clientX - r.left) + "px"
+    );
+
+    card.style.setProperty(
+        "--my",
+        (e.clientY - r.top) + "px"
+    );
+
 });
 
-// ═══ Notifications (same API as before) ═══
+
+// ═══════════════════════════════════════
+// HTML ESCAPE HELPER
+// ═══════════════════════════════════════
+
 function escHtml(v) {
+
     return String(v === null || v === undefined ? "" : v)
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
+
+
+// ═══════════════════════════════════════
+// TOGGLE NOTIFICATION DROPDOWN
+// ═══════════════════════════════════════
 
 function toggleNotifications() {
-    const dd = document.getElementById('notificationDropdown');
-    dd.classList.toggle('show');
-    if (dd.classList.contains('show')) loadNotifications();
+
+    const dd = document.getElementById(
+        "notificationDropdown"
+    );
+
+    if (!dd) return;
+
+    dd.classList.toggle("show");
+
+    if (dd.classList.contains("show")) {
+        loadNotifications();
+    }
 }
 
+
+// ═══════════════════════════════════════
+// LOAD SYSTEM NOTIFICATIONS + ADMIN ANNOUNCEMENTS
+// ═══════════════════════════════════════
+
 async function loadNotifications() {
-    const list = document.getElementById('notificationList');
+
+    const list = document.getElementById(
+        "notificationList"
+    );
+
+    if (!list) return;
+
     try {
-        const res  = await fetch('/api/notifications');
-        const data = await res.json();
-        updateNotificationBadge(data.count);
-        if (!data.notifications || data.notifications.length === 0) {
+
+        // Fetch both APIs simultaneously
+        const [notificationResponse, announcementResponse] =
+            await Promise.all([
+                fetch("/api/notifications"),
+                fetch("/api/announcements")
+            ]);
+
+        // Parse existing system notifications
+        let notificationData = {
+            notifications: [],
+            count: 0
+        };
+
+        if (notificationResponse.ok) {
+            notificationData = await notificationResponse.json();
+        }
+
+        // Parse admin announcements
+        let announcementData = {
+            success: false,
+            announcements: []
+        };
+
+        if (announcementResponse.ok) {
+            announcementData = await announcementResponse.json();
+        }
+
+        const existingNotifications =
+            notificationData.notifications || [];
+
+        const announcements =
+            announcementData.success
+                ? (announcementData.announcements || [])
+                : [];
+
+
+        // Convert announcements into notification format
+        const adminNotifications = announcements.map(
+            function (item) {
+
+                return {
+                    title: item.title,
+                    message: item.message,
+                    type: "announcement",
+                    icon: "ti-speakerphone",
+                    link: null,
+                    created_at: item.created_at || ""
+                };
+
+            }
+        );
+
+
+        // Combine both notification sources
+        const allNotifications = [
+            ...adminNotifications,
+            ...existingNotifications
+        ];
+
+
+        // Update combined notification count
+        updateNotificationBadge(allNotifications.length);
+
+
+        // Show empty state
+        if (allNotifications.length === 0) {
+
             list.innerHTML = `
                 <div class="notification-empty">
                     <i class="ti ti-circle-check"></i>
                     No new notifications<br>
                     <small>Everything looks good!</small>
-                </div>`;
+                </div>
+            `;
+
             return;
         }
-        list.innerHTML = '';
-        data.notifications.forEach(n => {
-            const el = document.createElement('div');
-            el.className = 'notification-item';
-            el.onclick = () => { if (n.link) window.location.href = n.link; };
-            el.innerHTML = `
-                <div class="notification-icon ${escHtml(n.type)}">
-                    <i class="ti ${escHtml(n.icon)}"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">${escHtml(n.title)}</div>
-                    <div class="notification-message">${escHtml(n.message)}</div>
-                </div>`;
+
+
+        // Clear old list
+        list.replaceChildren();
+
+
+        // Render each notification safely
+        allNotifications.forEach(function (n) {
+
+            const el = document.createElement("div");
+
+            el.className = "notification-item";
+
+
+            // Announcement icon or existing notification icon
+            const iconBox = document.createElement("div");
+
+            iconBox.className =
+                "notification-icon " +
+                (n.type || "announcement");
+
+
+            const icon = document.createElement("i");
+
+            icon.className =
+                "ti " +
+                (
+                    n.type === "announcement"
+                        ? "ti-speakerphone"
+                        : (n.icon || "ti-bell")
+                );
+
+
+            iconBox.appendChild(icon);
+
+
+            // Notification content
+            const content = document.createElement("div");
+
+            content.className = "notification-content";
+
+
+            const title = document.createElement("div");
+
+            title.className = "notification-title";
+
+            title.textContent = n.title || "Notification";
+
+
+            const message = document.createElement("div");
+
+            message.className = "notification-message";
+
+            message.textContent = n.message || "";
+
+
+            content.appendChild(title);
+            content.appendChild(message);
+
+
+            // Optional published date
+            if (n.created_at) {
+
+                const date = document.createElement("small");
+
+                date.className = "text-muted";
+
+                date.textContent = n.created_at;
+
+                content.appendChild(date);
+            }
+
+
+            // Optional link for existing notifications
+            if (n.link) {
+
+                el.style.cursor = "pointer";
+
+                el.addEventListener("click", function () {
+
+                    window.location.href = n.link;
+
+                });
+            }
+
+
+            el.appendChild(iconBox);
+            el.appendChild(content);
+
             list.appendChild(el);
+
         });
-    } catch (e) {
-        list.innerHTML = `<div class="notification-empty">Unable to load notifications.</div>`;
+
+    } catch (error) {
+
+        console.error(
+            "Notification loading error:",
+            error
+        );
+
+        list.innerHTML = `
+            <div class="notification-empty">
+                Unable to load notifications.
+                Please try again.
+            </div>
+        `;
     }
 }
+
+
+// ═══════════════════════════════════════
+// UPDATE NOTIFICATION BADGE
+// ═══════════════════════════════════════
 
 let lastNotifCount = 0;
+
 function updateNotificationBadge(count) {
-    const badge = document.getElementById('notificationBadge');
-    const text  = document.getElementById('notificationCount');
-    const btn   = document.getElementById('notificationBtn');
-    if (count > 0) {
-        badge.style.display = 'flex';
-        badge.textContent = count > 9 ? '9+' : count;
-        text.textContent = `${count} alert${count > 1 ? 's' : ''}`;
-        if (count > lastNotifCount) { btn.classList.remove('ring'); void btn.offsetWidth; btn.classList.add('ring'); }
-    } else {
-        badge.style.display = 'none';
-        text.textContent = 'No new notifications';
+
+    const badge = document.getElementById(
+        "notificationBadge"
+    );
+
+    const text = document.getElementById(
+        "notificationCount"
+    );
+
+    const btn = document.getElementById(
+        "notificationBtn"
+    );
+
+    count = Number(count) || 0;
+
+
+    // Update bell badge
+    if (badge) {
+
+        if (count > 0) {
+
+            badge.style.display = "flex";
+
+            badge.textContent =
+                count > 9 ? "9+" : count;
+
+        } else {
+
+            badge.style.display = "none";
+
+        }
     }
-    lastNotifCount = count || 0;
+
+
+    // Update notification header count
+    if (text) {
+
+        if (count > 0) {
+
+            text.textContent =
+                count + (
+                    count === 1
+                        ? " notification"
+                        : " notifications"
+                );
+
+        } else {
+
+            text.textContent = "No new notifications";
+
+        }
+    }
+
+
+    // Animate bell when count increases
+    if (count > lastNotifCount && btn) {
+
+        btn.classList.remove("ring");
+
+        void btn.offsetWidth;
+
+        btn.classList.add("ring");
+    }
+
+    lastNotifCount = count;
 }
 
-setInterval(loadNotifications, 60000);
 
-document.addEventListener('click', function(e) {
-    const wrapper = document.querySelector('.notification-wrapper');
-    const dd = document.getElementById('notificationDropdown');
-    if (wrapper && !wrapper.contains(e.target)) dd.classList.remove('show');
+// ═══════════════════════════════════════
+// AUTO-REFRESH EVERY 30 SECONDS
+// ═══════════════════════════════════════
+
+setInterval(function () {
+
+    loadNotifications();
+
+}, 30000);
+
+
+// ═══════════════════════════════════════
+// CLOSE DROPDOWN WHEN CLICKING OUTSIDE
+// ═══════════════════════════════════════
+
+document.addEventListener("click", function (e) {
+
+    const wrapper = document.querySelector(
+        ".notification-wrapper"
+    );
+
+    const dd = document.getElementById(
+        "notificationDropdown"
+    );
+
+    if (
+        wrapper &&
+        dd &&
+        !wrapper.contains(e.target)
+    ) {
+        dd.classList.remove("show");
+    }
+
 });
 </script>
 </body>

@@ -9,7 +9,7 @@ from reportlab.pdfgen import canvas
 
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from functools import wraps
-
+from flask import jsonify
 from ai import ask_ai
 from flask import jsonify
 from business_context import get_business_context
@@ -159,6 +159,56 @@ def get_admin_setting(key, default="0"):
     finally:
         cur.close()
         conn.close()
+# ==========================
+# USER ANNOUNCEMENTS API
+# ==========================
+
+@app.route('/api/announcements')
+@login_required
+def get_user_announcements():
+    conn = getConnection()
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        cur.execute("""
+            SELECT id, title, message, created_at
+            FROM admin_announcements
+            WHERE is_active = 1
+            ORDER BY id DESC
+        """)
+
+        announcements = cur.fetchall()
+
+        return jsonify({
+            "success": True,
+            "announcements": [
+                {
+                    "id": item["id"],
+                    "title": item["title"],
+                    "message": item["message"],
+                    "created_at": (
+                        item["created_at"].strftime("%d %b %Y, %I:%M %p")
+                        if item["created_at"] else ""
+                    )
+                }
+                for item in announcements
+            ]
+        })
+
+    except Exception as e:
+        print("Announcement API error:", e)
+
+        return jsonify({
+            "success": False,
+            "announcements": []
+        }), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
+
+
 
 # ==========================
 # LOGIN REQUIRED DECORATOR
