@@ -164,6 +164,16 @@ def get_admin_setting(key, default="0"):
 # ==========================
 
 @app.route('/api/announcements')
+# ==========================
+# LOGIN REQUIRED DECORATOR
+# ==========================
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
 @login_required
 def get_user_announcements():
     conn = getConnection()
