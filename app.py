@@ -42,7 +42,54 @@ from classifier import detect_product_details
 
 
 app = Flask(__name__)
-app.secret_key = "inventory123"
+app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-before-deploying")
+
+# ==========================
+# SUPER ADMIN CONTROL CENTER
+# Configure SUPER_ADMIN_EMAIL in Railway Variables.
+# ==========================
+def is_super_admin():
+    admin_email = os.environ.get("SUPER_ADMIN_EMAIL", "").strip().lower()
+    return bool(admin_email) and session.get("user", "").strip().lower() == admin_email
+
+def super_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            return redirect("/login")
+        if not is_super_admin():
+            return "Access denied", 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+def ensure_admin_tables():
+    """Create only the control-panel tables; does not alter business data."""
+    conn = getConnection()
+    cur = conn.cursor()
+    try:
+        cur.execute("CREATE TABLE IF NOT EXISTS admin_settings (setting_key VARCHAR(100) PRIMARY KEY, setting_value TEXT NOT NULL)")
+        cur.execute("CREATE TABLE IF NOT EXISTS admin_announcements (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(200) NOT NULL, message TEXT NOT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+        cur.execute("INSERT IGNORE INTO admin_settings (setting_key, setting_value) VALUES ('registrations_enabled','1'), ('maintenance_mode','0')")
+        # Add account status support if it does not exist. Ignore only duplicate-column errors.
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1")
+        except Exception as e:
+            if "duplicate column" not in str(e).lower() and "1060" not in str(e):
+                raise
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+def get_admin_setting(key, default="0"):
+    conn = getConnection(); cur = conn.cursor()
+    try:
+        cur.execute("SELECT setting_value FROM admin_settings WHERE setting_key=%s", (key,))
+        row = cur.fetchone()
+        return row[0] if row else default
+    finally:
+        cur.close(); conn.close()
+
 
 
 # ==========================
@@ -73,6 +120,13 @@ def home():
 # ==========================
 @app.route('/register')
 def register():
+    try:
+        ensure_admin_tables()
+        if get_admin_setting('registrations_enabled', '1') != '1':
+            flash('New registrations are temporarily disabled. Please try again later.', 'error')
+            return redirect('/login')
+    except Exception as e:
+        print('Admin settings check:', e)
     return render_template('register.html')
 
 
@@ -81,6 +135,14 @@ def register():
 # ==========================
 @app.route('/register', methods=['POST'])
 def registerUser():
+
+    try:
+        ensure_admin_tables()
+        if get_admin_setting('registrations_enabled', '1') != '1':
+            flash('New registrations are temporarily disabled. Please try again later.', 'error')
+            return redirect('/login')
+    except Exception as e:
+        print('Registration control check:', e)
 
     name = request.form["name"].strip()
     business_name = request.form["business_name"].strip()
@@ -205,6 +267,17 @@ def loginUser():
         user = cursor.fetchone()
 
         if user:
+            try:
+                ensure_admin_tables()
+                status_cursor = conn.cursor()
+                status_cursor.execute("SELECT is_active FROM users WHERE id=%s", (user[0],))
+                status_row = status_cursor.fetchone()
+                status_cursor.close()
+                if status_row and int(status_row[0]) != 1:
+                    flash("Your account is inactive. Please contact support.", "error")
+                    return redirect("/login")
+            except Exception as status_error:
+                print("Account status check:", status_error)
             session["uid"] = user[0]
             session["user"] = email
             session["name"] = user[1]
@@ -5944,6 +6017,110 @@ def android_login():
 # ==========================
 # LOGOUT
 # ==========================
+
+
+
+# ==========================
+# SUPER ADMIN ROUTES
+# ==========================
+@app.route('/admin')
+@super_admin_required
+def admin_dashboard():
+    ensure_admin_tables()
+    conn = getConnection(); cur = conn.cursor(dictionary=True) if False else conn.cursor()
+    try:
+        cur.execute("SELECT COUNT(*) FROM users"); total_users = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM users WHERE is_active=1"); active_users = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM users WHERE is_active=0"); inactive_users = cur.fetchone()[0]
+        # The existing users schema may not contain a created_at column.
+        # Keep dashboard compatible with the current production schema.
+        new_today = 0
+        growth = []  # Placeholder until registration timestamps are available in the users schema.
+        cur.execute("SELECT id, name, email, business_name, is_active FROM users ORDER BY id DESC LIMIT 8")
+        recent_users = cur.fetchall()
+        cur.execute("SELECT COUNT(*) FROM admin_announcements WHERE is_active=1"); announcements = cur.fetchone()[0]
+        return render_template('admin/dashboard.html', total_users=total_users, active_users=active_users, inactive_users=inactive_users, new_today=new_today, recent_users=recent_users, growth=growth, registrations_enabled=get_admin_setting('registrations_enabled','1')=='1', maintenance_mode=get_admin_setting('maintenance_mode','0')=='1', announcements=announcements)
+    finally:
+        cur.close(); conn.close()
+
+@app.route('/admin/users')
+@super_admin_required
+def admin_users():
+    ensure_admin_tables(); q = request.args.get('q','').strip()
+    conn=getConnection(); cur=conn.cursor()
+    try:
+        if q:
+            like='%'+q+'%'; cur.execute("SELECT id,name,email,business_name,is_active FROM users WHERE name LIKE %s OR email LIKE %s OR business_name LIKE %s ORDER BY id DESC", (like,like,like))
+        else:
+            cur.execute("SELECT id,name,email,business_name,is_active FROM users ORDER BY id DESC")
+        users=cur.fetchall()
+        return render_template('admin/users.html', users=users, q=q)
+    finally: cur.close(); conn.close()
+
+@app.route('/admin/users/<int:user_id>/status', methods=['POST'])
+@super_admin_required
+def admin_user_status(user_id):
+    if user_id == session.get('uid'):
+        flash('You cannot deactivate the currently logged-in admin account.', 'error'); return redirect('/admin/users')
+    active = 1 if request.form.get('active') == '1' else 0
+    conn=getConnection(); cur=conn.cursor()
+    try:
+        cur.execute("UPDATE users SET is_active=%s WHERE id=%s", (active,user_id)); conn.commit()
+        flash('User status updated.', 'success')
+    except Exception as e:
+        conn.rollback(); print('Admin user status error:',e); flash('Could not update user status.', 'error')
+    finally: cur.close(); conn.close()
+    return redirect('/admin/users')
+
+@app.route('/admin/control', methods=['POST'])
+@super_admin_required
+def admin_control():
+    ensure_admin_tables(); key=request.form.get('setting_key',''); value=request.form.get('setting_value','')
+    allowed={'registrations_enabled','maintenance_mode'}
+    if key not in allowed or value not in {'0','1'}:
+        flash('Invalid setting.', 'error'); return redirect('/admin')
+    conn=getConnection(); cur=conn.cursor()
+    try:
+        cur.execute("INSERT INTO admin_settings (setting_key,setting_value) VALUES (%s,%s) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)",(key,value)); conn.commit()
+        flash('Software setting updated.', 'success')
+    except Exception as e:
+        conn.rollback(); print('Admin control error:',e); flash('Could not update setting.', 'error')
+    finally: cur.close(); conn.close()
+    return redirect('/admin')
+
+@app.route('/admin/announcements', methods=['GET','POST'])
+@super_admin_required
+def admin_announcements():
+    ensure_admin_tables(); conn=getConnection(); cur=conn.cursor()
+    try:
+        if request.method=='POST':
+            title=request.form.get('title','').strip(); message=request.form.get('message','').strip()
+            if title and message:
+                cur.execute("INSERT INTO admin_announcements (title,message) VALUES (%s,%s)",(title,message)); conn.commit(); flash('Announcement published.', 'success')
+            else: flash('Enter both title and message.', 'error')
+            return redirect('/admin/announcements')
+        cur.execute("SELECT id,title,message,is_active,created_at FROM admin_announcements ORDER BY id DESC")
+        items=cur.fetchall()
+        return render_template('admin/announcements.html', announcements=items)
+    finally: cur.close(); conn.close()
+
+@app.route('/admin/announcements/<int:announcement_id>/toggle', methods=['POST'])
+@super_admin_required
+def admin_announcement_toggle(announcement_id):
+    conn=getConnection(); cur=conn.cursor()
+    try:
+        cur.execute("UPDATE admin_announcements SET is_active=1-is_active WHERE id=%s",(announcement_id,)); conn.commit()
+    finally: cur.close(); conn.close()
+    return redirect('/admin/announcements')
+
+@app.route('/admin/system')
+@super_admin_required
+def admin_system():
+    db_ok=False; db_message='Unavailable'
+    try:
+        conn=getConnection(); cur=conn.cursor(); cur.execute('SELECT 1'); cur.fetchone(); db_ok=True; db_message='Connected'; cur.close(); conn.close()
+    except Exception as e: print('Admin health check:',e)
+    return render_template('admin/system.html', db_ok=db_ok, db_message=db_message, app_name='AI Smart Inventory System')
 
 @app.route('/logout')
 @login_required
