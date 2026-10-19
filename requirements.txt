@@ -7,3 +7,5 @@ python-dotenv==1.2.2
 Pillow==12.2.0
 reportlab==5.0.0
 gunicorn
+PyMuPDF==1.26.7
+pytesseract==0.3.13

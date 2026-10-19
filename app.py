@@ -4407,7 +4407,15 @@ def processOCR(filename):
     if not ocr_settings.get("ai_ocr", 1):
         return "AI OCR is disabled in Settings. Enable it under Settings > AI Features before uploading bills.", 403
 
-    bill = extract_purchase_bill(filepath)
+    try:
+        bill = extract_purchase_bill(filepath)
+    except Exception:
+        app.logger.exception("Purchase bill OCR failed")
+        return ("Purchase bill OCR is temporarily unavailable. Gemini API quota may be exhausted or the file could not be processed. Please try again later; no stock or purchase history was changed.", 503)
+
+    if not isinstance(bill, dict) or bill.get("_error") or not bill.get("items"):
+        message = bill.get("_error", "No invoice items could be extracted.") if isinstance(bill, dict) else "No invoice items could be extracted."
+        return (f"{message} No stock or purchase history was changed. Please try again later or check the invoice manually.", 503)
 
     session["ocr_bill"] = bill
 

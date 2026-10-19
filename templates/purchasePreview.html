@@ -183,7 +183,7 @@ body{
             <h2>🤖 AI OCR Result</h2>
 
             <p class="mb-0">
-                Invoice successfully analyzed using Gemini Vision
+                {{ bill.get("_source", "Invoice extracted — please verify all fields") }}
             </p>
 
         </div>
