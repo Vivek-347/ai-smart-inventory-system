@@ -48,49 +48,117 @@ app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-before-deployi
 # SUPER ADMIN CONTROL CENTER
 # Configure SUPER_ADMIN_EMAIL in Railway Variables.
 # ==========================
+
 def is_super_admin():
-    admin_email = os.environ.get("SUPER_ADMIN_EMAIL", "").strip().lower()
-    return bool(admin_email) and session.get("user", "").strip().lower() == admin_email
+    admin_email = os.environ.get(
+        "SUPER_ADMIN_EMAIL", ""
+    ).strip().lower()
+
+    logged_in_email = session.get(
+        "user", ""
+    ).strip().lower()
+
+    # Debug logs - never print passwords
+    print("Super Admin email configured:", bool(admin_email))
+    print("Logged-in email:", logged_in_email)
+    print(
+        "Super Admin match:",
+        bool(admin_email) and logged_in_email == admin_email
+    )
+
+    return bool(admin_email) and logged_in_email == admin_email
+
 
 def super_admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+
         if "user" not in session:
             return redirect("/login")
+
         if not is_super_admin():
             return "Access denied", 403
+
         return f(*args, **kwargs)
+
     return decorated_function
 
+
 def ensure_admin_tables():
-    """Create only the control-panel tables; does not alter business data."""
+    """Create only the control-panel tables; preserve existing business data."""
+
     conn = getConnection()
     cur = conn.cursor()
+
     try:
-        cur.execute("CREATE TABLE IF NOT EXISTS admin_settings (setting_key VARCHAR(100) PRIMARY KEY, setting_value TEXT NOT NULL)")
-        cur.execute("CREATE TABLE IF NOT EXISTS admin_announcements (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(200) NOT NULL, message TEXT NOT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-        cur.execute("INSERT IGNORE INTO admin_settings (setting_key, setting_value) VALUES ('registrations_enabled','1'), ('maintenance_mode','0')")
-        # Add account status support if it does not exist. Ignore only duplicate-column errors.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS admin_settings (
+                setting_key VARCHAR(100) PRIMARY KEY,
+                setting_value TEXT NOT NULL
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS admin_announcements (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                message TEXT NOT NULL,
+                is_active TINYINT(1) NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cur.execute("""
+            INSERT IGNORE INTO admin_settings
+                (setting_key, setting_value)
+            VALUES
+                ('registrations_enabled', '1'),
+                ('maintenance_mode', '0')
+        """)
+
+        # Add account status column only if it does not already exist.
         try:
-            cur.execute("ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1")
+            cur.execute("""
+                ALTER TABLE users
+                ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1
+            """)
         except Exception as e:
-            if "duplicate column" not in str(e).lower() and "1060" not in str(e):
+            error_text = str(e).lower()
+
+            if (
+                "duplicate column" not in error_text
+                and "1060" not in error_text
+            ):
                 raise
+
         conn.commit()
+
     finally:
         cur.close()
         conn.close()
 
+
 def get_admin_setting(key, default="0"):
-    conn = getConnection(); cur = conn.cursor()
+    conn = getConnection()
+    cur = conn.cursor()
+
     try:
-        cur.execute("SELECT setting_value FROM admin_settings WHERE setting_key=%s", (key,))
+        cur.execute(
+            """
+            SELECT setting_value
+            FROM admin_settings
+            WHERE setting_key = %s
+            """,
+            (key,)
+        )
+
         row = cur.fetchone()
+
         return row[0] if row else default
+
     finally:
-        cur.close(); conn.close()
-
-
+        cur.close()
+        conn.close()
 
 # ==========================
 # LOGIN REQUIRED DECORATOR
@@ -282,8 +350,10 @@ def loginUser():
             session["user"] = email
             session["name"] = user[1]
 
-            return redirect("/dashboard")
+            if is_super_admin():
+                return redirect("/admin")
 
+            return redirect("/dashboard")
         flash("Invalid email or password. Please try again.", "error")
         return redirect("/login")
 
