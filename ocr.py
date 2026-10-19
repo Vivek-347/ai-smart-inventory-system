@@ -68,44 +68,92 @@ def _read_local_text(filepath):
 
 
 def _parse_local_invoice(text):
-    """Conservative heuristic parser; returns items only when product/price rows are found."""
+    """Parse local invoice text conservatively, prioritizing table rows over random numbers."""
     if not text or len(text.strip()) < 10:
         return _empty_bill("Local OCR could not read enough text from this invoice.")
-    supplier = ""
+
     lines = [re.sub(r"\s+", " ", x).strip(" |\t") for x in text.splitlines()]
     lines = [x for x in lines if x]
-    for line in lines[:6]:
-        if len(line) > 2 and not re.search(r"invoice|tax invoice|gstin|phone|email|bill to|ship to", line, re.I):
+    normalized = "\n".join(lines)
+
+    supplier = ""
+    for line in lines[:8]:
+        if (len(line) > 2 and not re.search(
+            r"invoice|tax invoice|gstin|phone|mobile|email|bill to|ship to|office\s*\d", line, re.I
+        )):
             supplier = line[:120]
             break
-    inv = re.search(r"(?:invoice\s*(?:no|number|#)|bill\s*(?:no|number|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9/-]{2,})", text, re.I)
-    date = re.search(r"(?:invoice\s*date|date)\s*[:#-]?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})", text, re.I)
+
+    inv = re.search(r"(?:invoice\s*(?:no|number|#)|bill\s*(?:no|number|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9/-]{2,})", normalized, re.I)
+    date = re.search(r"(?:invoice\s*date|date)\s*[:#-]?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})", normalized, re.I)
+
     items = []
-    # Only accept rows with a plausible trailing quantity and unit price; do not guess when unclear.
-    for line in lines:
-        if re.search(r"subtotal|grand total|taxable|cgst|sgst|igst|round.?off|shipping|discount|total amount|amount in words|hsn", line, re.I):
-            continue
-        nums = re.findall(r"(?<![A-Za-z])\d+(?:,\d{3})*(?:\.\d{1,2})?", line)
-        if len(nums) < 2:
-            continue
-        # Typical item rows end in quantity, unit price, line total (or quantity and price).
-        try:
-            vals = [float(n.replace(",", "")) for n in nums]
-            qty = int(vals[-3]) if len(vals) >= 3 and vals[-3].is_integer() and 0 < vals[-3] <= 100000 else (int(vals[-2]) if vals[-2].is_integer() and 0 < vals[-2] <= 100000 else None)
-            price = vals[-2] if len(vals) >= 3 and qty == int(vals[-3]) else vals[-1]
-            # Exclude improbable or ambiguous rows.
-            if not qty or price <= 0 or price > 100000000:
+    # PDF text extraction often puts each table cell on its own line. Parse only
+    # rows inside a clearly identified item table and require HSN + Qty + Rate + Amount.
+    header_idx = None
+    # Support both flattened text and PDFs where each table heading is a separate line.
+    for i, line in enumerate(lines):
+        if line.strip().lower() == "#" and i + 5 < len(lines):
+            header_block = " ".join(lines[i + 1:i + 6]).lower()
+            if all(token in header_block for token in ("description", "hsn", "qty", "rate", "amount")):
+                header_idx = i
+                break
+        if re.search(r"description", line, re.I) and re.search(r"hsn", line, re.I) and re.search(r"qty", line, re.I):
+            header_idx = i
+            break
+    if header_idx is not None:
+        i = header_idx + 6 if lines[header_idx].strip() == "#" else header_idx + 1
+        while i < len(lines):
+            # Stop before invoice totals / footer.
+            if re.search(r"amount in words|sub\s*total|grand total|igst|cgst|sgst|round off|terms\s*&?\s*conditions", lines[i], re.I):
+                break
+            # Expected extracted cell order: row number, description, HSN, qty, rate, amount.
+            if not re.fullmatch(r"\d{1,4}", lines[i]):
+                i += 1
                 continue
-            product = line[:line.rfind(nums[-3] if len(nums) >= 3 else nums[-2])].strip(" .:-|\t")
-            product = re.sub(r"^\d+\s+", "", product).strip()
-            if len(product) < 2 or re.search(r"invoice|gst|phone|total|date", product, re.I):
+            if i + 5 >= len(lines):
+                break
+            row_no, product, hsn, qty_s, rate_s, amount_s = lines[i:i+6]
+            # Validate cell shapes so address/phone/invoice numbers cannot become products.
+            if (re.fullmatch(r"\d{1,4}", row_no)
+                and len(product) >= 2
+                and re.fullmatch(r"\d{4,8}", hsn.replace(" ", ""))
+                and re.fullmatch(r"\d+(?:\.0+)?", qty_s.replace(",", ""))
+                and re.fullmatch(r"(?:₹|Rs\.?\s*)?\d[\d,]*(?:\.\d{1,2})?", rate_s, re.I)
+                and re.fullmatch(r"(?:₹|Rs\.?\s*)?\d[\d,]*(?:\.\d{1,2})?", amount_s, re.I)):
+                try:
+                    qty = int(float(qty_s.replace(",", "")))
+                    price = float(re.sub(r"[^\d.]", "", rate_s.replace(",", "")))
+                    amount = float(re.sub(r"[^\d.]", "", amount_s.replace(",", "")))
+                    # Amount should roughly equal quantity × rate; this guards against shifted columns.
+                    if qty > 0 and price > 0 and amount > 0 and abs(qty * price - amount) <= max(2.0, amount * 0.03):
+                        items.append({"product": product.strip()[:150], "brand": "", "category": "General", "sub_category": "", "model_number": "", "color": "", "warranty": "", "gst": 18, "quantity": qty, "cost_price": price})
+                        i += 6
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            i += 1
+
+    # Fallback for common single-line tables: accept only rows with an explicit
+    # row number, product text, HSN, quantity, rate and line amount.
+    if not items:
+        for line in lines:
+            if re.search(r"subtotal|grand total|taxable|cgst|sgst|igst|round.?off|shipping|discount|amount in words|terms|invoice|gstin|mobile|phone", line, re.I):
                 continue
-            items.append({"product": product[:150], "brand": "", "category": "General", "sub_category": "", "model_number": "", "color": "", "warranty": "", "gst": 18, "quantity": qty, "cost_price": price})
-        except (ValueError, IndexError):
-            continue
+            m = re.match(r"^\s*\d{1,4}\s+(.+?)\s+\d{4,8}\s+(\d+)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*$", line)
+            if not m:
+                continue
+            product, qty_s, rate_s, amount_s = m.groups()
+            try:
+                qty, price, amount = int(qty_s), float(rate_s.replace(',', '')), float(amount_s.replace(',', ''))
+                if qty > 0 and price > 0 and abs(qty * price - amount) <= max(2.0, amount * 0.03):
+                    items.append({"product": product.strip()[:150], "brand": "", "category": "General", "sub_category": "", "model_number": "", "color": "", "warranty": "", "gst": 18, "quantity": qty, "cost_price": price})
+            except ValueError:
+                continue
+
     items = _clean_items(items)
     if not items:
-        return _empty_bill("Gemini was unavailable and local OCR could not confidently identify product rows. Please enter invoice items manually; no stock was changed.")
+        return _empty_bill("Local OCR could not confidently identify valid product-table rows. Please verify the invoice manually; no stock was changed.")
     return {"supplier": supplier, "invoice_number": inv.group(1) if inv else "", "invoice_date": date.group(1) if date else "", "items": items, "_source": "Local OCR — please verify all fields"}
 
 
