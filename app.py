@@ -4657,13 +4657,29 @@ def confirmPurchaseImport():
     bill = session.get("ocr_bill")
 
     if not bill:
-
         return """
         <script>
         alert("No OCR Data Found.");
         window.location="/purchaseOCR";
         </script>
         """
+
+    # ==========================================
+    # OCR DEBUG - CHECK ALL EXTRACTED PRODUCTS
+    # ==========================================
+
+    print("\n========== OCR DEBUG ==========")
+
+    print("TOTAL ITEMS:", len(bill.get("items", [])))
+
+    for index, item in enumerate(bill.get("items", []), start=1):
+        print(f"ITEM {index}:", item)
+
+    print("================================\n")
+
+    # ==========================================
+    # SUPPLIER & INVOICE DETAILS
+    # ==========================================
 
     supplier = str(
         bill.get("supplier", "")
