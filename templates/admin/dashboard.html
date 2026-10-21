@@ -1,1 +1,519 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Super Admin | AI Smart Inventory</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><style>body{background:#f4f6fb;color:#1d263b;font-family:Inter,system-ui,sans-serif}.sidebar{width:250px;min-height:100vh;background:#111827;color:#cbd5e1;position:fixed;padding:24px 16px}.brand{color:white;font-weight:800;font-size:17px;margin:0 10px 30px}.navlink{display:block;padding:12px 14px;color:#cbd5e1;text-decoration:none;border-radius:10px;margin:5px 0}.navlink:hover,.navlink.active{background:#273449;color:#fff}.main{margin-left:250px;padding:30px}.card{border:0;border-radius:16px;box-shadow:0 5px 22px #1c2a4410}.metric{font-size:30px;font-weight:800}.muted{color:#7b879b}.pill{border-radius:20px;padding:5px 10px;font-size:12px}.table>:not(caption)>*>*{padding:14px}.flash{margin-bottom:12px}@media(max-width:760px){.sidebar{position:static;width:100%;min-height:auto}.main{margin:0;padding:18px}}</style></head><body><aside class="sidebar"><div class="brand"><i class="bi bi-box-seam me-2"></i>INVENTORY <span class="text-info">ADMIN</span></div><a class="navlink" href="/admin"><i class="bi bi-grid me-2"></i>Dashboard</a><a class="navlink" href="/admin/users"><i class="bi bi-people me-2"></i>User Management</a><a class="navlink" href="/admin/announcements"><i class="bi bi-megaphone me-2"></i>Announcements</a><a class="navlink" href="/admin/system"><i class="bi bi-cpu me-2"></i>System Health</a><div class="mt-5"><a class="navlink" href="/dashboard"><i class="bi bi-arrow-left me-2"></i>Back to App</a><a class="navlink" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></div></aside><main class="main">{% with messages = get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="alert alert-{{ 'success' if category=='success' else 'warning' }} flash">{{ message }}</div>{% endfor %}{% endwith %}<div class="d-flex justify-content-between align-items-center flex-wrap mb-4"><div><div class="muted small">CONTROL CENTER / OVERVIEW</div><h2 class="fw-bold mt-1">Super Admin Dashboard</h2><div class="muted">Manage your software, users and global settings.</div></div><span class="badge text-bg-dark p-2"><i class="bi bi-shield-check me-1"></i>Super Admin</span></div><div class="row g-3 mb-4">{% for label,value,icon in [('Total Users',total_users,'people'),('Active Users',active_users,'person-check'),('Inactive Users',inactive_users,'person-x'),('New Today',new_today,'person-plus')] %}<div class="col-6 col-xl-3"><div class="card p-4"><div class="muted"><i class="bi bi-{{icon}} me-2"></i>{{label}}</div><div class="metric mt-2">{{value}}</div></div></div>{% endfor %}</div><div class="row g-3"><div class="col-xl-7"><div class="card p-4 h-100"><h5 class="fw-bold mb-3">Recent Users</h5><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Name</th><th>Email</th><th>Business</th><th>Status</th></tr></thead><tbody>{% for u in recent_users %}<tr><td>{{u[1]}}</td><td>{{u[2]}}</td><td>{{u[3] or '-'}}</td><td><span class="pill {{'bg-success-subtle text-success' if u[4] else 'bg-danger-subtle text-danger'}}">{{'Active' if u[4] else 'Inactive'}}</span></td></tr>{% else %}<tr><td colspan="4">No users found.</td></tr>{% endfor %}</tbody></table></div><a href="/admin/users" class="btn btn-outline-dark btn-sm">Manage all users</a></div></div><div class="col-xl-5"><div class="card p-4 mb-3"><h5 class="fw-bold">Software Controls</h5><p class="muted small">Toggle global registration and maintenance settings.</p><form method="post" action="/admin/control" class="d-flex justify-content-between align-items-center py-3 border-bottom"><input type="hidden" name="setting_key" value="registrations_enabled"><input type="hidden" name="setting_value" value="{{'0' if registrations_enabled else '1'}}"><div><b>New registrations</b><div class="muted small">{{'Currently enabled' if registrations_enabled else 'Currently disabled'}}</div></div><button class="btn btn-sm {{'btn-success' if registrations_enabled else 'btn-outline-secondary'}}">{{'Disable' if registrations_enabled else 'Enable'}}</button></form><form method="post" action="/admin/control" class="d-flex justify-content-between align-items-center py-3"><input type="hidden" name="setting_key" value="maintenance_mode"><input type="hidden" name="setting_value" value="{{'0' if maintenance_mode else '1'}}"><div><b>Maintenance mode</b><div class="muted small">{{'Currently enabled' if maintenance_mode else 'Currently disabled'}}</div></div><button class="btn btn-sm {{'btn-warning' if maintenance_mode else 'btn-outline-secondary'}}">{{'Turn off' if maintenance_mode else 'Turn on'}}</button></form></div><div class="card p-4"><h5 class="fw-bold">Quick links</h5><a href="/admin/announcements" class="btn btn-light text-start mt-2"><i class="bi bi-megaphone me-2"></i>Publish announcement</a><a href="/admin/system" class="btn btn-light text-start mt-2"><i class="bi bi-heart-pulse me-2"></i>Check system health</a></div></div></div></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Super Admin | AI Smart Inventory</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+:root { --brand: #4f6ef7; --brand2: #7c5dfa; --ink: #1a1d2e; --muted: #8a8fa8; --line: #eef0f8; --soft: #f8f9fc; --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --cyan: #06b6d4; }
+body { background: #f0f2f7; color: var(--ink); font-family: 'Inter', system-ui, sans-serif; margin: 0; min-height: 100vh; }
+
+/* ══ SIDEBAR ══ */
+.sidebar { width: 260px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; background: #0d0f1a; scrollbar-width: none; }
+.sidebar::-webkit-scrollbar { display: none; }
+.sb-brand { padding: 22px 18px 18px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand), var(--brand2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(79,110,247,.4); }
+.brand-icon i { font-size: 19px; color: #fff; }
+.brand-text h3 { font-size: 15px; font-weight: 700; color: #fff; margin: 0; }
+.brand-text p { font-size: 11px; color: rgba(255,255,255,.32); margin: 1px 0 0; }
+.status-pill { display: flex; align-items: center; gap: 6px; background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.2); border-radius: 20px; padding: 4px 10px; width: fit-content; }
+.status-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: pulseDot 2s infinite; }
+@keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.8); } }
+.status-text { font-size: 10.5px; font-weight: 500; color: #4ade80; }
+.nav-section { padding: 16px 12px 6px; }
+.nav-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.22); padding: 0 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.nav-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.06); }
+.navlink { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,.5); text-decoration: none; padding: 10px 12px; border-radius: 10px; font-size: 14px; transition: all .18s; margin-bottom: 2px; position: relative; overflow: hidden; }
+.navlink::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 0 3px 3px 0; background: var(--brand); transform: scaleY(0); transition: transform .18s; }
+.navlink .ni { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.05); transition: all .18s; flex-shrink: 0; }
+.navlink .ni i { font-size: 16px; }
+.navlink:hover { color: #fff; background: rgba(255,255,255,.06); }
+.navlink:hover .ni { background: rgba(79,110,247,.2); color: #818cf8; }
+.navlink:hover::before, .navlink.active::before { transform: scaleY(1); }
+.navlink.active { color: #fff; background: linear-gradient(90deg, rgba(79,110,247,.25), rgba(79,110,247,.05)); font-weight: 500; }
+.navlink.active .ni { background: var(--brand); color: #fff; box-shadow: 0 3px 10px rgba(79,110,247,.4); }
+.sb-footer { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+.sb-footer .navlink.danger:hover { color: #ff6b6b; background: rgba(255,107,107,.08); }
+.sb-footer .navlink.danger:hover .ni { background: rgba(255,107,107,.15); color: #ff6b6b; }
+
+/* ══ MAIN ══ */
+.main { margin-left: 260px; padding: 28px 32px; }
+
+/* ══ TOASTS (flash messages) ══ */
+.toast-stack { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast-item { min-width: 280px; max-width: 380px; display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 14px; background: #fff; border: 1px solid var(--line); box-shadow: 0 14px 36px rgba(0,0,0,.16); font-size: 13px; font-weight: 500; animation: toastIn .45s cubic-bezier(.2,.9,.3,1.2); position: relative; overflow: hidden; }
+.toast-item.out { animation: toastOut .3s ease forwards; }
+.toast-item .t-ic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.toast-item.success .t-ic { background: #dcfce7; color: #16a34a; } .toast-item.warning .t-ic { background: #fef3c7; color: #d97706; }
+.toast-item .t-x { margin-left: auto; border: none; background: none; color: var(--muted); font-size: 16px; cursor: pointer; }
+.toast-item .t-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: linear-gradient(90deg, var(--brand), var(--brand2)); animation: toastBar 5s linear forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(40px) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(40px); } }
+@keyframes toastBar { to { width: 0; } }
+
+/* ══ HERO ══ */
+.hero { position: relative; overflow: hidden; border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; color: #fff; background: #12142a; box-shadow: 0 18px 44px rgba(39,45,87,.3); }
+.aurora { position: absolute; inset: -50%; pointer-events: none; filter: blur(60px); opacity: .75; background: radial-gradient(circle at 25% 40%, rgba(79,110,247,.9), transparent 38%), radial-gradient(circle at 72% 30%, rgba(124,93,250,.8), transparent 36%), radial-gradient(circle at 55% 85%, rgba(6,182,212,.5), transparent 34%); animation: spin 24s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 34px 34px; -webkit-mask-image: radial-gradient(circle at 50% 0, #000, transparent 75%); mask-image: radial-gradient(circle at 50% 0, #000, transparent 75%); }
+.hero-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.crumb { font-size: 11px; letter-spacing: .12em; color: #a5b4fc; font-weight: 600; }
+.hero-title { font-size: 26px; font-weight: 800; margin: 4px 0 2px; }
+.hero-sub { font-size: 13px; color: #c1c8e4; }
+.hero-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.hero-chip { font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 20px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); display: inline-flex; align-items: center; gap: 6px; }
+.hero-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; }
+.hero-chip.warn .dot { background: var(--amber); }
+.hero-chip.off .dot { background: #94a3b8; animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.7); } 70% { box-shadow: 0 0 0 9px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+.hero-chip.warn .dot { animation: pulseA 1.6s infinite; }
+@keyframes pulseA { 0% { box-shadow: 0 0 0 0 rgba(245,158,11,.7); } 70% { box-shadow: 0 0 0 9px rgba(245,158,11,0); } 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } }
+.hero-right { text-align: right; }
+.admin-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; padding: 7px 14px; border-radius: 12px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); backdrop-filter: blur(8px); }
+.clock { font-size: 30px; font-weight: 800; margin-top: 10px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.clock-date { font-size: 12px; color: #c1c8e4; }
+
+.maint-banner { display: none; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 12px; margin-bottom: 18px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 13px; font-weight: 500; animation: pulseBanner 2.4s ease-in-out infinite; }
+.maint-banner.show { display: flex; }
+.maint-banner i { font-size: 20px; }
+@keyframes pulseBanner { 50% { box-shadow: 0 0 0 4px rgba(245,158,11,.14); } }
+
+/* ══ STATS ══ */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat-card { background-color: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--line); position: relative; overflow: hidden; transition: transform .18s, box-shadow .18s; }
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.09); background-image: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(79,110,247,.11), transparent 65%); }
+.stat-card::before { content: ''; position: absolute; bottom: 0; right: 0; width: 90px; height: 90px; border-radius: 90px 0 14px 0; opacity: .06; }
+.stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card.k-blue::after { background: linear-gradient(90deg, #4f6ef7, #7c5dfa); } .stat-card.k-blue::before { background: var(--brand); }
+.stat-card.k-green::after { background: linear-gradient(90deg, #16a34a, #22c55e); } .stat-card.k-green::before { background: var(--green); }
+.stat-card.k-red::after { background: linear-gradient(90deg, #dc2626, #ef4444); } .stat-card.k-red::before { background: var(--red); }
+.stat-card.k-cyan::after { background: linear-gradient(90deg, #4f6ef7, #06b6d4); } .stat-card.k-cyan::before { background: var(--cyan); }
+.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform .25s; }
+.stat-card:hover .stat-icon { transform: scale(1.12) rotate(-6deg); }
+.stat-icon i { font-size: 19px; }
+.k-blue .stat-icon { background: #eef0ff; color: var(--brand); } .k-green .stat-icon { background: #dcfce7; color: #16a34a; }
+.k-red .stat-icon { background: #fee2e2; color: #dc2626; } .k-cyan .stat-icon { background: #cffafe; color: #0e7490; }
+.stat-label { font-size: 11.5px; font-weight: 500; color: var(--muted); margin-bottom: 3px; }
+.metric { font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+
+/* ══ PANELS ══ */
+.panel { background: #fff; border-radius: 14px; border: 1px solid var(--line); padding: 22px; position: relative; overflow: hidden; }
+.panel.accent::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--brand), var(--brand2), var(--cyan)); }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+.panel-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
+.panel-title i { color: var(--brand); font-size: 17px; }
+.panel-badge { font-size: 10.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: #eef0ff; color: var(--brand); }
+.muted { color: var(--muted); }
+
+/* user health */
+.health-box { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.gauge { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+.gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge circle { fill: none; stroke-width: 11; stroke-linecap: round; }
+.gauge .bg { stroke: #fee2e2; }
+.gauge .fg { stroke: url(#hg); stroke-dasharray: 339.3; stroke-dashoffset: var(--off); animation: gaugeIn 1.6s cubic-bezier(.2,.8,.2,1) both; filter: drop-shadow(0 4px 8px rgba(34,197,94,.3)); }
+@keyframes gaugeIn { from { stroke-dashoffset: 339.3; } }
+.gauge-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gauge-num { font-size: 28px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.gauge-of { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.split { flex: 1; min-width: 200px; }
+.split-bar { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: #eef0f6; gap: 3px; }
+.split-bar span { display: block; height: 100%; width: 0; transition: width 1.3s cubic-bezier(.2,.8,.2,1); }
+.split-bar .a { background: linear-gradient(90deg, #16a34a, #22c55e); } .split-bar .i { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.split-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.split-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+/* users table */
+.search-box { position: relative; min-width: 200px; }
+.search-box i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
+.search-box input { width: 100%; padding: 7px 12px 7px 32px; border-radius: 10px; border: 1.5px solid #e8eaf2; background: #fafbfd; font-size: 12.5px; outline: none; transition: .15s; font-family: inherit; }
+.search-box input:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(79,110,247,.12); }
+.table { margin: 0; --bs-table-bg: transparent; }
+.table th { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--soft); border-bottom: 1px solid var(--line); white-space: nowrap; padding: 11px 14px; }
+.table td { font-size: 13px; vertical-align: middle; padding: 12px 14px; border-bottom: 1px solid #f5f6fb; }
+.table tbody tr { transition: background .15s, box-shadow .15s; animation: rowIn .45s cubic-bezier(.2,.8,.2,1) both; }
+.table tbody tr:hover { background: #fafbff; box-shadow: inset 3px 0 0 var(--brand); }
+.table tbody tr:last-child td { border-bottom: none; }
+@keyframes rowIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.u-cell { display: flex; align-items: center; gap: 11px; }
+.avatar { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.u-name { font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 20px; padding: 4px 11px; font-size: 11px; font-weight: 700; }
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.on { background: #dcfce7; color: #166534; } .pill.off { background: #fee2e2; color: #b42318; }
+.no-match { display: none; padding: 26px; text-align: center; color: var(--muted); font-size: 13px; }
+.btn-soft { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 10px; font-size: 12.5px; font-weight: 600; background: #eef0ff; color: var(--brand); text-decoration: none; border: none; transition: .15s; margin-top: 14px; }
+.btn-soft:hover { background: var(--brand); color: #fff; transform: translateY(-1px); }
+
+/* controls */
+.control { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; transition: border .15s, background .15s; background-color: #fff; }
+.control:hover { border-color: #c7d2ff; background-color: #fafbff; }
+.control .c-lead { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.control .c-ic { width: 40px; height: 40px; border-radius: 11px; background: var(--soft); color: var(--muted); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: all .2s; }
+.control.on .c-ic { background: #eef0ff; color: var(--brand); }
+.control.on.warn .c-ic { background: #fef3c7; color: #d97706; }
+.c-title { font-size: 13.5px; font-weight: 700; }
+.c-state { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.c-state .d { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; }
+.control.on .c-state .d { background: var(--green); }
+.control.on.warn .c-state .d { background: var(--amber); }
+.switch-btn { position: relative; width: 52px; height: 29px; border-radius: 99px; border: none; background: #d9dce8; cursor: pointer; transition: background .25s; flex-shrink: 0; padding: 0; }
+.switch-btn::after { content: ''; position: absolute; top: 3px; left: 3px; width: 23px; height: 23px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); transition: transform .28s cubic-bezier(.2,.9,.3,1.3); }
+.control.on .switch-btn { background: linear-gradient(135deg, var(--brand), var(--brand2)); }
+.control.on.warn .switch-btn { background: linear-gradient(135deg, #d97706, #f59e0b); }
+.control.on .switch-btn::after { transform: translateX(23px); }
+.switch-btn:focus-visible { outline: 3px solid rgba(79,110,247,.3); outline-offset: 2px; }
+.switch-btn:disabled { opacity: .7; cursor: wait; }
+
+.quick { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); text-decoration: none; color: var(--ink); margin-top: 10px; transition: all .18s; background-color: var(--soft); }
+.quick:hover { border-color: #c7d2ff; background: #f0f3ff; transform: translateX(4px); color: var(--ink); }
+.quick .q-ic { width: 38px; height: 38px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 17px; color: var(--brand); border: 1px solid var(--line); transition: all .18s; }
+.quick:hover .q-ic { background: var(--brand); color: #fff; }
+.quick b { font-size: 13px; display: block; }
+.quick small { color: var(--muted); font-size: 11.5px; }
+.quick .arrow { margin-left: auto; color: var(--muted); transition: transform .18s; }
+.quick:hover .arrow { transform: translateX(4px); color: var(--brand); }
+
+/* modal */
+.modal-content { border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.22); }
+.m-ic { width: 64px; height: 64px; border-radius: 18px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 6px auto 14px; animation: pulseBanner 2.4s ease-in-out infinite; }
+.btn-warn { background: linear-gradient(135deg, #d97706, #f59e0b); color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 600; }
+.btn-warn:hover { color: #fff; transform: translateY(-1px); }
+.btn-cancel { background: var(--soft); color: #5a5f7d; border: 1px solid #e8eaf2; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 600; }
+
+@media (max-width: 900px) { .sidebar { position: static; width: 100%; height: auto; } .main { margin: 0; padding: 18px; } .hero-right { text-align: left; } .toast-stack { right: 12px; left: 12px; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sb-brand">
+        <div class="brand-row">
+            <div class="brand-icon"><i class="bi bi-shield-lock"></i></div>
+            <div class="brand-text">
+                <h3>Inventory Admin</h3>
+                <p>Control center</p>
+            </div>
+        </div>
+        <div class="status-pill"><div class="status-dot"></div><span class="status-text">System online</span></div>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-label">Admin</div>
+        <a class="navlink {{ 'active' if request.path == '/admin' else '' }}" href="/admin"><span class="ni"><i class="bi bi-grid"></i></span>Dashboard</a>
+        <a class="navlink {{ 'active' if request.path == '/admin/users' else '' }}" href="/admin/users"><span class="ni"><i class="bi bi-people"></i></span>User management</a>
+        <a class="navlink {{ 'active' if request.path == '/admin/announcements' else '' }}" href="/admin/announcements"><span class="ni"><i class="bi bi-megaphone"></i></span>Announcements</a>
+        <a class="navlink {{ 'active' if request.path == '/admin/system' else '' }}" href="/admin/system"><span class="ni"><i class="bi bi-cpu"></i></span>System health</a>
+    </div>
+
+    <div class="sb-footer">
+        <a class="navlink" href="/dashboard"><span class="ni"><i class="bi bi-arrow-left"></i></span>Back to app</a>
+        <a class="navlink danger" href="/logout"><span class="ni"><i class="bi bi-box-arrow-right"></i></span>Logout</a>
+    </div>
+</aside>
+
+<main class="main">
+
+    <!-- Flash messages become toasts -->
+    <div class="toast-stack" id="toastStack">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="toast-item {{ 'success' if category == 'success' else 'warning' }}">
+            <span class="t-ic"><i class="bi bi-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i></span>
+            <span>{{ message }}</span>
+            <button class="t-x" type="button" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+            <span class="t-bar"></span>
+        </div>
+        {% endfor %}
+        {% endwith %}
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="aurora"></div>
+        <div class="hero-inner">
+            <div>
+                <div class="crumb">CONTROL CENTER / OVERVIEW</div>
+                <div class="hero-title">Super Admin Dashboard</div>
+                <div class="hero-sub">Manage your software, users and global settings.</div>
+                <div class="hero-chips">
+                    <span class="hero-chip {{ '' if registrations_enabled else 'off' }}"><span class="dot"></span> Registrations {{ 'open' if registrations_enabled else 'closed' }}</span>
+                    <span class="hero-chip {{ 'warn' if maintenance_mode else '' }}"><span class="dot"></span> {{ 'Maintenance mode on' if maintenance_mode else 'Live and serving users' }}</span>
+                </div>
+            </div>
+            <div class="hero-right">
+                <span class="admin-badge"><i class="bi bi-shield-check"></i> Super Admin</span>
+                <div class="clock" id="clock">--:--:--</div>
+                <div class="clock-date" id="clockDate"></div>
+            </div>
+        </div>
+    </div>
+
+    {% if maintenance_mode %}
+    <div class="maint-banner show">
+        <i class="bi bi-cone-striped"></i>
+        <div><b>Maintenance mode is on.</b> Regular users may be blocked from the app until you turn it off.</div>
+    </div>
+    {% endif %}
+
+    <!-- Metrics -->
+    <div class="row g-3 mb-4">
+        {% for label, value, icon, tone in [('Total Users', total_users, 'people', 'k-blue'), ('Active Users', active_users, 'person-check', 'k-green'), ('Inactive Users', inactive_users, 'person-x', 'k-red'), ('New Today', new_today, 'person-plus', 'k-cyan')] %}
+        <div class="col-6 col-xl-3">
+            <div class="stat-card {{ tone }}">
+                <div class="stat-icon"><i class="bi bi-{{ icon }}"></i></div>
+                <div class="stat-label">{{ label }}</div>
+                <div class="metric" data-count="{{ value }}">{{ value }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- User health -->
+    {% set active_pct = ((active_users / total_users * 100) | round(1)) if total_users else 0 %}
+    <div class="panel accent mb-4">
+        <div class="panel-header">
+            <h5 class="panel-title"><i class="bi bi-activity"></i> User health</h5>
+            <span class="panel-badge">Active vs inactive</span>
+        </div>
+        <div class="health-box">
+            <div class="gauge">
+                <svg viewBox="0 0 120 120" style="--off: {{ (339.3 * (1 - active_pct / 100)) | round(1) }}">
+                    <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f6ef7"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs>
+                    <circle class="bg" cx="60" cy="60" r="54"/>
+                    <circle class="fg" cx="60" cy="60" r="54"/>
+                </svg>
+                <div class="gauge-c">
+                    <div class="gauge-num" data-count="{{ active_pct }}" data-suffix="%" data-dec="0">{{ active_pct | round | int }}%</div>
+                    <div class="gauge-of">active</div>
+                </div>
+            </div>
+            <div class="split">
+                <div class="fw-bold mb-2" style="font-size:13px;">{{ active_users }} of {{ total_users }} accounts are active</div>
+                <div class="split-bar">
+                    <span class="a" data-w="{{ (active_users / total_users * 100) if total_users else 0 }}"></span>
+                    <span class="i" data-w="{{ (inactive_users / total_users * 100) if total_users else 0 }}"></span>
+                </div>
+                <div class="split-legend">
+                    <span><i style="background:#22c55e"></i>Active ({{ active_users }})</span>
+                    <span><i style="background:#ef4444"></i>Inactive ({{ inactive_users }})</span>
+                    <span><i style="background:#06b6d4"></i>New today ({{ new_today }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- Recent users -->
+        <div class="col-xl-7">
+            <div class="panel h-100">
+                <div class="panel-header">
+                    <h5 class="panel-title"><i class="bi bi-people"></i> Recent users</h5>
+                    <div class="search-box"><i class="bi bi-search"></i><input type="text" id="userSearch" placeholder="Search users"></div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle" id="userTable">
+                        <thead><tr><th>Name</th><th>Email</th><th>Business</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for u in recent_users %}
+                            <tr style="animation-delay: {{ loop.index0 * 45 }}ms" data-search="{{ (u[1] ~ ' ' ~ u[2] ~ ' ' ~ (u[3] or ''))|lower|e }}">
+                                <td>
+                                    <div class="u-cell">
+                                        <span class="avatar" data-seed="{{ u[1]|e }}">{{ u[1][0]|upper if u[1] else '?' }}</span>
+                                        <span class="u-name">{{ u[1] }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ u[2] }}</td>
+                                <td>{{ u[3] or '-' }}</td>
+                                <td><span class="pill {{ 'on' if u[4] else 'off' }}">{{ 'Active' if u[4] else 'Inactive' }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4">No users found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="no-match" id="noMatch">No users match your search.</div>
+                </div>
+                <a href="/admin/users" class="btn-soft"><i class="bi bi-arrow-right-circle"></i> Manage all users</a>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+
+            <!-- Software controls -->
+            <div class="panel accent mb-3">
+                <h5 class="panel-title mb-1"><i class="bi bi-sliders"></i> Software controls</h5>
+                <p class="muted small mb-3">Toggle global registration and maintenance settings.</p>
+
+                <form method="post" action="/admin/control" class="control {{ 'on' if registrations_enabled else '' }}">
+                    <input type="hidden" name="setting_key" value="registrations_enabled">
+                    <input type="hidden" name="setting_value" value="{{ '0' if registrations_enabled else '1' }}">
+                    <div class="c-lead">
+                        <div class="c-ic"><i class="bi bi-person-plus"></i></div>
+                        <div>
+                            <div class="c-title">New registrations</div>
+                            <div class="c-state"><span class="d"></span>{{ 'Currently enabled' if registrations_enabled else 'Currently disabled' }}</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="switch-btn" title="{{ 'Disable' if registrations_enabled else 'Enable' }}" aria-label="{{ 'Disable' if registrations_enabled else 'Enable' }} new registrations"></button>
+                </form>
+
+                <form method="post" action="/admin/control" class="control warn {{ 'on' if maintenance_mode else '' }}" id="maintForm" data-turning-on="{{ '0' if maintenance_mode else '1' }}">
+                    <input type="hidden" name="setting_key" value="maintenance_mode">
+                    <input type="hidden" name="setting_value" value="{{ '0' if maintenance_mode else '1' }}">
+                    <div class="c-lead">
+                        <div class="c-ic"><i class="bi bi-cone-striped"></i></div>
+                        <div>
+                            <div class="c-title">Maintenance mode</div>
+                            <div class="c-state"><span class="d"></span>{{ 'Currently enabled' if maintenance_mode else 'Currently disabled' }}</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="switch-btn" title="{{ 'Turn off' if maintenance_mode else 'Turn on' }}" aria-label="{{ 'Turn off' if maintenance_mode else 'Turn on' }} maintenance mode"></button>
+                </form>
+            </div>
+
+            <!-- Quick links -->
+            <div class="panel">
+                <h5 class="panel-title mb-1"><i class="bi bi-lightning-charge"></i> Quick links</h5>
+                <a href="/admin/announcements" class="quick">
+                    <span class="q-ic"><i class="bi bi-megaphone"></i></span>
+                    <span><b>Publish announcement</b><small>Tell all users something new</small></span>
+                    <i class="bi bi-arrow-right arrow"></i>
+                </a>
+                <a href="/admin/system" class="quick">
+                    <span class="q-ic"><i class="bi bi-heart-pulse"></i></span>
+                    <span><b>Check system health</b><small>Server and database status</small></span>
+                    <i class="bi bi-arrow-right arrow"></i>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- Maintenance confirmation -->
+<div class="modal fade" id="maintModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="m-ic"><i class="bi bi-cone-striped"></i></div>
+                <h5 class="fw-bold mb-1">Turn on maintenance mode?</h5>
+                <p class="text-muted small mb-4">Regular users may be blocked from the app until you switch it off again.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-warn" id="maintConfirm">Yes, turn on</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function animateNum(el, target, fmt) {
+    target = Number(target) || 0;
+    fmt = fmt || function (v) { return Math.round(v); };
+    if (reduceMotion || target === 0) { el.textContent = fmt(target); return; }
+    const start = performance.now(), dur = 1000;
+    (function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(target * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+    })(start);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Count-ups
+    document.querySelectorAll("[data-count]").forEach(function (el) {
+        const suffix = el.dataset.suffix || "";
+        animateNum(el, el.dataset.count, function (v) { return Math.round(v) + suffix; });
+    });
+
+    // Active / inactive split bar
+    setTimeout(function () {
+        document.querySelectorAll(".split-bar span").forEach(function (s) { s.style.width = Math.min(100, Number(s.dataset.w) || 0) + "%"; });
+    }, 250);
+
+    // Avatar colors from name
+    const palette = ["#4f6ef7", "#7c5dfa", "#06b6d4", "#16a34a", "#f59e0b", "#ec4899", "#0ea5e9", "#ef4444"];
+    document.querySelectorAll(".avatar[data-seed]").forEach(function (av) {
+        let h = 0; const s = av.dataset.seed || "";
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        av.style.background = "linear-gradient(135deg," + palette[h % palette.length] + "," + palette[(h + 3) % palette.length] + ")";
+    });
+
+    // Toasts: auto close after 5s, or on click
+    document.querySelectorAll(".toast-item").forEach(function (t) {
+        function close() { t.classList.add("out"); setTimeout(function () { t.remove(); }, 300); }
+        t.querySelector(".t-x").addEventListener("click", close);
+        setTimeout(close, 5000);
+    });
+});
+
+// Live clock
+function tickClock() {
+    const d = new Date();
+    document.getElementById("clock").textContent = d.toLocaleTimeString("en-IN", { hour12: false });
+    document.getElementById("clockDate").textContent = d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// User search
+const searchEl = document.getElementById("userSearch");
+searchEl.addEventListener("input", function () {
+    const q = searchEl.value.trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll("#userTable tbody tr[data-search]").forEach(function (r) {
+        const ok = r.dataset.search.includes(q);
+        r.style.display = ok ? "" : "none";
+        if (ok) shown++;
+    });
+    document.getElementById("noMatch").style.display = shown ? "none" : "block";
+});
+
+// Confirm before turning maintenance mode ON (turning it off submits straight away)
+const maintForm = document.getElementById("maintForm");
+const maintModal = new bootstrap.Modal(document.getElementById("maintModal"));
+maintForm.addEventListener("submit", function (e) {
+    if (maintForm.dataset.turningOn === "1" && !maintForm.dataset.confirmed) {
+        e.preventDefault();
+        maintModal.show();
+    }
+});
+document.getElementById("maintConfirm").addEventListener("click", function () {
+    maintForm.dataset.confirmed = "1";
+    maintForm.submit();
+});
+
+// Disable switch buttons after a click to avoid double submits
+document.querySelectorAll(".control").forEach(function (f) {
+    f.addEventListener("submit", function (e) {
+        if (e.defaultPrevented) return;
+        const b = f.querySelector(".switch-btn");
+        setTimeout(function () { b.disabled = true; }, 0);
+    });
+});
+
+// Mouse-follow spotlight on stat cards
+document.addEventListener("mousemove", function (e) {
+    const card = e.target.closest(".stat-card");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    card.style.setProperty("--my", (e.clientY - r.top) + "px");
+});
+</script>
+</body>
+</html>
