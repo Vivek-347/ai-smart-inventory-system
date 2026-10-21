@@ -4799,22 +4799,13 @@ def confirmPurchaseImport():
     # ==========================================
 
     cursor.execute("""
-
-    SELECT supplier_id
-
-    FROM suppliers
-
-    WHERE uid=%s
-
-    AND LOWER(supplier_name)=LOWER(%s)
-
-    """,
-    (
-
+        SELECT supplier_id
+        FROM suppliers
+        WHERE uid = %s
+        AND LOWER(supplier_name) = LOWER(%s)
+    """, (
         session["uid"],
-
         supplier
-
     ))
 
     supplier_data = cursor.fetchone()
@@ -4822,29 +4813,22 @@ def confirmPurchaseImport():
     if supplier_data is None:
 
         cursor.execute("""
-
-        INSERT INTO suppliers
-        (
-            uid,
-            supplier_name
-        )
-        VALUES
-        (
-            %s,
-            %s
-        )
-
-        """,
-        (
-
+            INSERT INTO suppliers (
+                uid,
+                supplier_name
+            )
+            VALUES (%s, %s)
+        """, (
             session["uid"],
-
             supplier
-
         ))
 
         conn.commit()
 
+        supplier_id = cursor.lastrowid
+
+    else:
+        supplier_id = supplier_data[0]
     # ==========================================
     # PURCHASE SUMMARY
     # ==========================================
